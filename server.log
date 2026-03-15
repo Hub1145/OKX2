@@ -1,0 +1,41 @@
+2026-03-11 20:10:02,771 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+ * Serving Flask app 'app'
+ * Debug mode: off
+2026-03-11 20:10:02,783 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.2:5000
+2026-03-11 20:10:02,783 - INFO - [33mPress CTRL+C to quit[0m
+2026-03-11 20:10:03,427 - INFO - Product Info Updated for ETH-USDT-SWAP: ContractSize=0.1, LotSz=0.01
+2026-03-11 20:10:04,028 - INFO - Baseline initialized: Long=0.0, Short=0.0 contracts
+2026-03-11 20:10:04,347 - INFO - Bot initialized and started (Mode: Passive)
+2026-03-11 20:10:05,168 - INFO - Websocket connected
+2026-03-11 20:10:05,237 - INFO - Websocket connected
+2026-03-11 20:10:05,387 - INFO - WebSocket Login Successful.
+2026-03-11 20:11:12,243 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:12] "GET /login HTTP/1.1" 200 -
+2026-03-11 20:11:13,714 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:13] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-03-11 20:11:13,740 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:13] "GET / HTTP/1.1" 200 -
+2026-03-11 20:11:13,791 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:13] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-03-11 20:11:13,797 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:13] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-03-11 20:11:13,983 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:13] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 20:11:13,987 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:13] "GET /api/config HTTP/1.1" 200 -
+2026-03-11 20:11:14,005 - INFO - Client connected: bf1SiHtFZ92-TFaWAAAB
+2026-03-11 20:11:14,094 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:14] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 20:11:21,318 - INFO - Client disconnected
+2026-03-11 20:11:21,318 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:21] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-03-11 20:13:17,262 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:17] "GET /login HTTP/1.1" 200 -
+2026-03-11 20:13:18,404 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-03-11 20:13:18,409 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "GET / HTTP/1.1" 200 -
+2026-03-11 20:13:18,428 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-03-11 20:13:18,431 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-03-11 20:13:18,579 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 20:13:18,583 - INFO - Client connected: Pd7U--7bx8q_L5_WAAAD
+2026-03-11 20:13:18,583 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "GET /api/config HTTP/1.1" 200 -
+2026-03-11 20:13:18,638 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 20:13:23,330 - INFO - Client disconnected
+2026-03-11 20:13:23,331 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:23] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-03-11 22:12:07,612 - WARNING - WebSocket Health Check Failed: No data for 60s. Forcing restart.
+2026-03-11 22:12:07,625 - INFO - Restarting WebSocket connections...
+2026-03-11 22:12:10,524 - INFO - Websocket connected
+2026-03-11 22:12:10,529 - INFO - Websocket connected
+2026-03-11 22:12:10,755 - INFO - WebSocket Login Successful.

@@ -1,0 +1,177 @@
+2026-03-11 07:23:00,853 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-03-11 07:30:16,809 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-03-11 07:30:16,818 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.2:5000
+2026-03-11 07:30:16,818 - INFO - [33mPress CTRL+C to quit[0m
+2026-03-11 07:30:17,502 - INFO - Product Info Updated for ETH-USDT-SWAP: ContractSize=0.1, LotSz=0.01
+2026-03-11 07:30:18,150 - INFO - Baseline initialized: Long=0.0, Short=0.0 contracts
+2026-03-11 07:30:18,494 - INFO - Bot initialized and started (Mode: Passive)
+2026-03-11 07:30:19,304 - INFO - Websocket connected
+2026-03-11 07:30:19,346 - INFO - Websocket connected
+2026-03-11 07:30:19,525 - INFO - WebSocket Login Successful.
+2026-03-11 07:31:58,893 - INFO - 127.0.0.1 - - [11/Mar/2026 07:31:58] "GET / HTTP/1.1" 200 -
+2026-03-11 07:31:58,965 - INFO - 127.0.0.1 - - [11/Mar/2026 07:31:58] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-03-11 07:31:58,967 - INFO - 127.0.0.1 - - [11/Mar/2026 07:31:58] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-03-11 07:31:59,422 - INFO - 127.0.0.1 - - [11/Mar/2026 07:31:59] "GET /api/config HTTP/1.1" 200 -
+2026-03-11 07:31:59,430 - INFO - 127.0.0.1 - - [11/Mar/2026 07:31:59] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 07:31:59,439 - INFO - Client connected: GLB806q14G0HK7PgAAAB
+2026-03-11 07:31:59,512 - INFO - 127.0.0.1 - - [11/Mar/2026 07:31:59] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 07:32:00,359 - INFO - 127.0.0.1 - - [11/Mar/2026 07:32:00] "POST /api/config HTTP/1.1" 200 -
+2026-03-11 07:32:00,554 - INFO - 127.0.0.1 - - [11/Mar/2026 07:32:00] "POST /api/config HTTP/1.1" 200 -
+2026-03-11 07:32:00,564 - INFO - 127.0.0.1 - - [11/Mar/2026 07:32:00] "POST /api/config HTTP/1.1" 200 -
+2026-03-11 07:32:01,767 - INFO - Client disconnected
+2026-03-11 07:32:01,767 - INFO - 127.0.0.1 - - [11/Mar/2026 07:32:01] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-03-11 07:33:06,190 - INFO - 127.0.0.1 - - [11/Mar/2026 07:33:06] "GET / HTTP/1.1" 200 -
+2026-03-11 07:33:06,208 - INFO - 127.0.0.1 - - [11/Mar/2026 07:33:06] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-03-11 07:33:06,209 - INFO - 127.0.0.1 - - [11/Mar/2026 07:33:06] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-03-11 07:33:06,443 - INFO - 127.0.0.1 - - [11/Mar/2026 07:33:06] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 07:33:06,444 - INFO - Client connected: suZYbvG61DIOKaVFAAAD
+2026-03-11 07:33:06,446 - INFO - 127.0.0.1 - - [11/Mar/2026 07:33:06] "GET /api/config HTTP/1.1" 200 -
+2026-03-11 07:33:06,498 - INFO - 127.0.0.1 - - [11/Mar/2026 07:33:06] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 07:33:07,404 - INFO - 127.0.0.1 - - [11/Mar/2026 07:33:07] "POST /api/config HTTP/1.1" 200 -
+2026-03-11 07:33:09,436 - INFO - Client disconnected
+2026-03-11 07:33:09,437 - INFO - 127.0.0.1 - - [11/Mar/2026 07:33:09] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-03-11 07:34:10,649 - INFO - 127.0.0.1 - - [11/Mar/2026 07:34:10] "GET / HTTP/1.1" 200 -
+2026-03-11 07:34:10,665 - INFO - 127.0.0.1 - - [11/Mar/2026 07:34:10] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-03-11 07:34:10,666 - INFO - 127.0.0.1 - - [11/Mar/2026 07:34:10] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-03-11 07:34:10,942 - INFO - Client connected: imJZ8GXVV8EphSYRAAAF
+2026-03-11 07:34:10,943 - INFO - 127.0.0.1 - - [11/Mar/2026 07:34:10] "GET /api/config HTTP/1.1" 200 -
+2026-03-11 07:34:10,947 - INFO - 127.0.0.1 - - [11/Mar/2026 07:34:10] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 07:34:10,995 - INFO - 127.0.0.1 - - [11/Mar/2026 07:34:10] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 07:34:41,362 - INFO - Client disconnected
+2026-03-11 07:34:41,363 - INFO - 127.0.0.1 - - [11/Mar/2026 07:34:41] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-03-11 07:35:47,107 - INFO - 127.0.0.1 - - [11/Mar/2026 07:35:47] "GET / HTTP/1.1" 200 -
+2026-03-11 07:35:47,123 - INFO - 127.0.0.1 - - [11/Mar/2026 07:35:47] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-03-11 07:35:47,126 - INFO - 127.0.0.1 - - [11/Mar/2026 07:35:47] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-03-11 07:35:47,424 - INFO - Client connected: 3VS1kfnZnPxK6n_qAAAH
+2026-03-11 07:35:47,425 - INFO - 127.0.0.1 - - [11/Mar/2026 07:35:47] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 07:35:47,429 - INFO - 127.0.0.1 - - [11/Mar/2026 07:35:47] "GET /api/config HTTP/1.1" 200 -
+2026-03-11 07:35:47,482 - INFO - 127.0.0.1 - - [11/Mar/2026 07:35:47] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 07:35:48,327 - INFO - 127.0.0.1 - - [11/Mar/2026 07:35:48] "POST /api/config HTTP/1.1" 200 -
+2026-03-11 07:35:48,396 - INFO - 127.0.0.1 - - [11/Mar/2026 07:35:48] "POST /api/config HTTP/1.1" 200 -
+2026-03-11 07:35:48,407 - INFO - 127.0.0.1 - - [11/Mar/2026 07:35:48] "POST /api/config HTTP/1.1" 200 -
+2026-03-11 07:35:50,493 - INFO - Client disconnected
+2026-03-11 07:35:50,493 - INFO - 127.0.0.1 - - [11/Mar/2026 07:35:50] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-03-11 20:10:02,771 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-03-11 20:10:02,783 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.2:5000
+2026-03-11 20:10:02,783 - INFO - [33mPress CTRL+C to quit[0m
+2026-03-11 20:10:03,427 - INFO - Product Info Updated for ETH-USDT-SWAP: ContractSize=0.1, LotSz=0.01
+2026-03-11 20:10:04,028 - INFO - Baseline initialized: Long=0.0, Short=0.0 contracts
+2026-03-11 20:10:04,347 - INFO - Bot initialized and started (Mode: Passive)
+2026-03-11 20:10:05,168 - INFO - Websocket connected
+2026-03-11 20:10:05,237 - INFO - Websocket connected
+2026-03-11 20:10:05,387 - INFO - WebSocket Login Successful.
+2026-03-11 20:11:12,243 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:12] "GET /login HTTP/1.1" 200 -
+2026-03-11 20:11:13,714 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:13] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-03-11 20:11:13,740 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:13] "GET / HTTP/1.1" 200 -
+2026-03-11 20:11:13,791 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:13] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-03-11 20:11:13,797 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:13] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-03-11 20:11:13,983 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:13] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 20:11:13,987 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:13] "GET /api/config HTTP/1.1" 200 -
+2026-03-11 20:11:14,005 - INFO - Client connected: bf1SiHtFZ92-TFaWAAAB
+2026-03-11 20:11:14,094 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:14] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 20:11:21,318 - INFO - Client disconnected
+2026-03-11 20:11:21,318 - INFO - 127.0.0.1 - - [11/Mar/2026 20:11:21] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-03-11 20:13:17,262 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:17] "GET /login HTTP/1.1" 200 -
+2026-03-11 20:13:18,404 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-03-11 20:13:18,409 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "GET / HTTP/1.1" 200 -
+2026-03-11 20:13:18,428 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-03-11 20:13:18,431 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-03-11 20:13:18,579 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 20:13:18,583 - INFO - Client connected: Pd7U--7bx8q_L5_WAAAD
+2026-03-11 20:13:18,583 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "GET /api/config HTTP/1.1" 200 -
+2026-03-11 20:13:18,638 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:18] "GET /api/status HTTP/1.1" 200 -
+2026-03-11 20:13:23,330 - INFO - Client disconnected
+2026-03-11 20:13:23,331 - INFO - 127.0.0.1 - - [11/Mar/2026 20:13:23] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-03-11 22:12:07,612 - WARNING - WebSocket Health Check Failed: No data for 60s. Forcing restart.
+2026-03-11 22:12:07,625 - INFO - Restarting WebSocket connections...
+2026-03-11 22:12:10,524 - INFO - Websocket connected
+2026-03-11 22:12:10,529 - INFO - Websocket connected
+2026-03-11 22:12:10,755 - INFO - WebSocket Login Successful.
+2026-03-14 09:18:43,181 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.2.0.2:5000
+2026-03-14 09:18:43,187 - INFO - [33mPress CTRL+C to quit[0m
+2026-03-14 09:18:47,379 - INFO - Product Info Updated for ETH-USDT-SWAP: ContractSize=0.1, LotSz=0.01
+2026-03-14 09:18:51,722 - INFO - Baseline initialized: Long=0.0, Short=0.0 contracts
+2026-03-14 09:18:53,716 - INFO - Bot initialized and started (Mode: Passive)
+2026-03-14 09:18:55,313 - INFO - Websocket connected
+2026-03-14 09:18:55,668 - INFO - Websocket connected
+2026-03-14 09:18:55,702 - INFO - WebSocket Login Successful.
+2026-03-14 09:19:18,573 - INFO - 127.0.0.1 - - [14/Mar/2026 09:19:18] "[32mGET / HTTP/1.1[0m" 302 -
+2026-03-14 09:19:18,598 - INFO - 127.0.0.1 - - [14/Mar/2026 09:19:18] "GET /login?next=http://127.0.0.1:5000/ HTTP/1.1" 200 -
+2026-03-14 09:19:18,862 - INFO - 127.0.0.1 - - [14/Mar/2026 09:19:18] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-03-14 09:22:24,639 - INFO - 127.0.0.1 - - [14/Mar/2026 09:22:24] "POST /login HTTP/1.1" 200 -
+2026-03-14 09:23:09,582 - INFO - 127.0.0.1 - - [14/Mar/2026 09:23:09] "[33mGET /dashboard HTTP/1.1[0m" 404 -
+2026-03-14 09:23:18,292 - INFO - 127.0.0.1 - - [14/Mar/2026 09:23:18] "GET /login HTTP/1.1" 200 -
+2026-03-14 09:23:19,064 - INFO - 127.0.0.1 - - [14/Mar/2026 09:23:19] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-03-14 09:23:19,240 - INFO - 127.0.0.1 - - [14/Mar/2026 09:23:19] "GET / HTTP/1.1" 200 -
+2026-03-14 09:23:21,048 - INFO - 127.0.0.1 - - [14/Mar/2026 09:23:21] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-03-14 09:23:21,087 - INFO - 127.0.0.1 - - [14/Mar/2026 09:23:21] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-03-14 09:23:21,441 - INFO - 127.0.0.1 - - [14/Mar/2026 09:23:21] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:23:21,447 - INFO - 127.0.0.1 - - [14/Mar/2026 09:23:21] "GET /api/config HTTP/1.1" 200 -
+2026-03-14 09:23:21,608 - INFO - Client connected: LxDfGbdiBQpBKbgbAAAB
+2026-03-14 09:23:21,881 - INFO - 127.0.0.1 - - [14/Mar/2026 09:23:21] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:35:40,744 - INFO - 127.0.0.1 - - [14/Mar/2026 09:35:40] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:35:43,638 - INFO - 127.0.0.1 - - [14/Mar/2026 09:35:43] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:40:23,795 - INFO - 127.0.0.1 - - [14/Mar/2026 09:40:23] "[32mGET / HTTP/1.1[0m" 302 -
+2026-03-14 09:40:23,850 - INFO - 127.0.0.1 - - [14/Mar/2026 09:40:23] "GET /login?next=http://127.0.0.1:5000/ HTTP/1.1" 200 -
+2026-03-14 09:44:18,751 - ERROR - WebSocket error: Connection to remote host was lost.
+2026-03-14 09:44:18,762 - ERROR - Connection to remote host was lost. - goodbye
+2026-03-14 09:44:23,864 - INFO - Restarting WebSocket connections...
+2026-03-14 09:44:36,798 - INFO - Client disconnected
+2026-03-14 09:44:36,881 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:36] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-03-14 09:44:36,901 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:36] "GET / HTTP/1.1" 200 -
+2026-03-14 09:44:36,956 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:36] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-03-14 09:44:36,970 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:36] "[36mGET /static/js/app.js HTTP/1.1[0m" 304 -
+2026-03-14 09:44:37,212 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:37] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:44:37,231 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:37] "GET /api/config HTTP/1.1" 200 -
+2026-03-14 09:44:37,331 - INFO - Client connected: MU8-mpuKPyJ1tpTTAAAD
+2026-03-14 09:44:37,375 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:37] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:44:37,645 - ERROR - WebSocket error: [Errno 11001] getaddrinfo failed
+2026-03-14 09:44:37,647 - ERROR - WebSocket error: [Errno 11001] getaddrinfo failed
+2026-03-14 09:44:37,660 - ERROR - [Errno 11001] getaddrinfo failed - goodbye
+2026-03-14 09:44:37,663 - ERROR - [Errno 11001] getaddrinfo failed - goodbye
+2026-03-14 09:44:44,296 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:44] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:44:46,651 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:46] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:44:47,751 - INFO - Restarting WebSocket connections...
+2026-03-14 09:44:51,369 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:51] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:44:53,098 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:53] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:44:54,547 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:54] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:44:54,716 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:54] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:44:58,260 - INFO - 127.0.0.1 - - [14/Mar/2026 09:44:58] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:45:01,077 - ERROR - WebSocket error: [Errno 11001] getaddrinfo failed
+2026-03-14 09:45:01,077 - ERROR - WebSocket error: [Errno 11001] getaddrinfo failed
+2026-03-14 09:45:01,082 - ERROR - [Errno 11001] getaddrinfo failed - goodbye
+2026-03-14 09:45:01,084 - ERROR - [Errno 11001] getaddrinfo failed - goodbye
+2026-03-14 09:45:02,393 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:02] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:45:05,574 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:05] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:45:05,874 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:05] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:45:14,347 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:14] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:45:15,084 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:15] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:45:16,710 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:16] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:45:21,174 - INFO - Restarting WebSocket connections...
+2026-03-14 09:45:21,404 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:21] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:45:22,106 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:22] "POST /api/config HTTP/1.1" 200 -
+2026-03-14 09:45:23,149 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:23] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:45:24,631 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:24] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:45:24,749 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:24] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:45:28,373 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:28] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:45:29,999 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:29] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:45:30,002 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:30] "GET /api/config HTTP/1.1" 200 -
+2026-03-14 09:45:32,421 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:32] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:45:34,479 - ERROR - WebSocket error: [Errno 11001] getaddrinfo failed
+2026-03-14 09:45:34,485 - ERROR - WebSocket error: [Errno 11001] getaddrinfo failed
+2026-03-14 09:45:34,489 - ERROR - [Errno 11001] getaddrinfo failed - goodbye
+2026-03-14 09:45:34,500 - ERROR - [Errno 11001] getaddrinfo failed - goodbye
+2026-03-14 09:45:35,630 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:35] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:45:35,934 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:35] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:45:45,113 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:45] "GET /api/status HTTP/1.1" 200 -
+2026-03-14 09:45:51,340 - INFO - Client disconnected
+2026-03-14 09:45:51,400 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:51] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -

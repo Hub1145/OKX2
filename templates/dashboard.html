@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Bot Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body data-theme="dark">
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-graph-up-arrow"></i> Trading Bot Dashboard
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="themeToggle">
+                    <label class="form-check-label" for="themeToggle">
+                        <i class="bi bi-moon-stars" id="themeIcon"></i>
+                    </label>
+                </div>
+                <button class="btn btn-primary" id="startStopBtn">
+                    <i class="bi bi-play-fill"></i> <span>Start</span>
+                </button>
+                <button class="btn btn-danger" id="stopAllBtn">
+                    <i class="bi bi-stop-circle-fill"></i> Stop All
+                </button>
+                <button class="btn btn-secondary" id="configBtn">
+                    <i class="bi bi-gear-fill"></i> Config
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge status-badge" id="botStatus">Stopped</span>
+                    <div class="d-flex gap-2 flex-wrap justify-content-end">
+                        <button class="btn btn-warning" id="emergencySlBtn">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Emergency SL
+                        </button>
+                        <button class="btn btn-info" id="batchModifyTPSLBtn">
+                            <i class="bi bi-pencil-square"></i> Batch Modify TP/SL
+                        </button>
+                        <button class="btn btn-danger" id="batchCancelOrdersBtn">
+                            <i class="bi bi-x-circle"></i> Batch Cancel Orders
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card mb-3 border-warning">
+                    <div class="card-body py-2">
+                        <!-- Auto-Manual Profit Row -->
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="form-check form-switch m-0">
+                                    <input class="form-check-input" type="checkbox" id="usePnlAutoManual">
+                                    <label class="form-check-label fw-bold" for="usePnlAutoManual">Auto-Manual
+                                        Profit</label>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="pnlAutoManualThreshold"
+                                    class="text-secondary small text-uppercase fw-bold">Target Manual Profit
+                                    ($)</label>
+                                <input type="number" class="form-control form-control-sm" id="pnlAutoManualThreshold"
+                                    style="width: 80px;" step="0.01">
+                            </div>
+                        </div>
+
+                        <!-- Auto-Cal Profit Row -->
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="form-check form-switch m-0">
+                                    <input class="form-check-input" type="checkbox" id="usePnlAutoCal">
+                                    <label class="form-check-label fw-bold" for="usePnlAutoCal">Auto-Cal Profit</label>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="pnlAutoCalDisplay"
+                                    class="text-secondary small text-uppercase fw-bold">Target Auto Profit ($)</label>
+                                <input type="number" class="form-control form-control-sm" id="pnlAutoCalDisplay"
+                                    style="width: 80px;" readonly placeholder="Auto">
+                                <label for="pnlAutoCalTimes"
+                                    class="text-secondary small text-uppercase fw-bold ms-2">Times</label>
+                                <input type="number" class="form-control form-control-sm" id="pnlAutoCalTimes"
+                                    style="width: 60px;" step="0.1" min="0.1">
+                            </div>
+                        </div>
+
+                        <!-- Auto-Cal Loss Row -->
+                        <div
+                            class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 pt-2 border-top border-secondary border-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="form-check form-switch m-0">
+                                    <input class="form-check-input" type="checkbox" id="usePnlAutoCalLoss">
+                                    <label class="form-check-label fw-bold text-danger" for="usePnlAutoCalLoss">Auto-Cal
+                                        Loss (Close All)</label>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="pnlAutoCalLossDisplay"
+                                    class="text-secondary small text-uppercase fw-bold">Target Auto Loss / Cancel
+                                    ($)</label>
+                                <input type="number" class="form-control form-control-sm" id="pnlAutoCalLossDisplay"
+                                    style="width: 80px;" readonly placeholder="Auto">
+                                <label for="pnlAutoCalLossTimes"
+                                    class="text-secondary small text-uppercase fw-bold ms-2">Times</label>
+                                <input type="number" class="form-control form-control-sm" id="pnlAutoCalLossTimes"
+                                    style="width: 60px;" step="0.1" min="0.1">
+                            </div>
+                        </div>
+
+                        <!-- Auto-Cal Size (Profit) Row -->
+                        <div
+                            class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 pt-2 border-top border-secondary border-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="form-check form-switch m-0">
+                                    <input class="form-check-input" type="checkbox" id="useSizeAutoCal">
+                                    <label class="form-check-label fw-bold" for="useSizeAutoCal">Auto-Cal Size
+                                        (Profit)</label>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="sizeAutoCalDisplay"
+                                    class="text-secondary small text-uppercase fw-bold">Target Size Profit ($)</label>
+                                <input type="number" class="form-control form-control-sm" id="sizeAutoCalDisplay"
+                                    style="width: 80px;" readonly placeholder="Auto">
+                                <label for="sizeAutoCalTimes"
+                                    class="text-secondary small text-uppercase fw-bold ms-2">Times</label>
+                                <input type="number" class="form-control form-control-sm" id="sizeAutoCalTimes"
+                                    style="width: 60px;" step="0.1" min="0.1">
+                            </div>
+                        </div>
+
+                        <!-- Auto-Cal Size (Loss) Row -->
+                        <div
+                            class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 pt-2 border-top border-secondary border-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="form-check form-switch m-0">
+                                    <input class="form-check-input" type="checkbox" id="useSizeAutoCalLoss">
+                                    <label class="form-check-label fw-bold text-danger"
+                                        for="useSizeAutoCalLoss">Auto-Cal Size Loss</label>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="sizeAutoCalLossDisplay"
+                                    class="text-secondary small text-uppercase fw-bold">Target Size Loss ($)</label>
+                                <input type="number" class="form-control form-control-sm" id="sizeAutoCalLossDisplay"
+                                    style="width: 80px;" readonly placeholder="Auto">
+                                <label for="sizeAutoCalLossTimes"
+                                    class="text-secondary small text-uppercase fw-bold ms-2">Times</label>
+                                <input type="number" class="form-control form-control-sm" id="sizeAutoCalLossTimes"
+                                    style="width: 60px;" step="0.1" min="0.1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3 border-info">
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="d-flex flex-column gap-1" style="flex: 1;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-info small fw-bold">Trade Fee:</span>
+                                    <span class="text-info fw-bold" id="tradeFees">$0.00</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-muted small">Used:</span>
+                                    <span class="text-muted small" id="usedFee">$0.00</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-muted small">Remaining:</span>
+                                    <span class="text-muted small" id="remainingFee">$0.00</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-muted small">Rate:</span>
+                                    <span class="text-muted small" id="feeRateDisplay">0.07%</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-info small fw-bold">Size Fee:</span>
+                                    <span class="text-info small fw-bold" id="sizeFeeDisplay">$0.00</span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-end gap-2">
+                                <div class="d-flex align-items-center gap-1">
+                                    <label for="tradeFeePercentage" class="text-secondary small text-uppercase fw-bold"
+                                        style="font-size: 0.7rem;">Fee
+                                        %</label>
+                                    <input type="number" class="form-control form-control-sm" id="tradeFeePercentage"
+                                        style="width: 60px; font-size: 0.75rem;" step="0.001">
+                                </div>
+                                <button class="btn btn-sm btn-outline-info" id="refreshFeesBtn" title="Refresh Fees">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Auto-Add Margin Container -->
+                <div class="card mb-3 border-warning">
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="form-check form-switch m-0">
+                                    <input class="form-check-input" type="checkbox" id="useAutoMargin">
+                                    <label class="form-check-label fw-bold" for="useAutoMargin"
+                                        style="color: #ffc107;">Auto-Add Margin</label>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="autoMarginOffset" class="text-secondary small text-uppercase fw-bold"
+                                    style="font-size: 0.7rem;">Offset ($)</label>
+                                <input type="number" class="form-control form-control-sm" id="autoMarginOffset"
+                                    style="width: 70px; font-size: 0.75rem;" step="1" min="1">
+                                <span class="text-secondary small text-uppercase fw-bold ms-2"
+                                    style="font-size: 0.7rem; color: #ffc107;">(Gap)</span>
+                                <span class="badge bg-secondary" id="liqGapDisplay"
+                                    style="font-size: 0.8rem;">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auto-Cal Add Position Container -->
+                <div class="card mb-3 border-info">
+                    <div class="card-header bg-dark-purple py-1 border-info">
+                        <small class="text-info fw-bold text-uppercase" id="autoAddPosHeader">Auto-Cal Add Short
+                            Position</small>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center flex-wrap gap-2 mb-2 border-bottom border-secondary pb-2">
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input dashboard-sync" type="checkbox"
+                                    id="useAddPosAboveZeroMain" data-sync-id="useAddPosAboveZero">
+                                <label class="form-check-label small fw-bold text-light" for="useAddPosAboveZeroMain">
+                                    Exit when PnL above 0
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center flex-wrap gap-2 mb-2 border-bottom border-secondary pb-2">
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input dashboard-sync" type="checkbox"
+                                    id="useAddPosProfitTargetMain" data-sync-id="useAddPosProfitTarget">
+                                <label class="form-check-label small fw-bold text-light"
+                                    for="useAddPosProfitTargetMain">
+                                    Exit when Profit Target met
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Settings Row 1 (Multiplier, Type, Times2) -->
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="addPosProfitMultiplierMain"
+                                    class="text-secondary small text-uppercase fw-bold"
+                                    style="font-size: 0.65rem;">Profit Multiplier</label>
+                                <input type="number" class="form-control form-control-sm dashboard-sync"
+                                    id="addPosProfitMultiplierMain" data-sync-id="addPosProfitMultiplier"
+                                    style="width: 55px; font-size: 0.7rem; background: #1a1a2e; color: #fff; border: 1px solid #444;"
+                                    step="0.1" min="0">
+                                <span class="text-secondary small text-uppercase fw-bold" style="font-size: 0.65rem;">x
+                                    Fee</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="addPosOrderTypeMain" class="text-secondary small text-uppercase fw-bold"
+                                    style="font-size: 0.65rem;">Type</label>
+                                <select class="form-select form-select-sm dashboard-sync" id="addPosOrderTypeMain"
+                                    data-sync-id="addPosOrderType"
+                                    style="width: 75px; font-size: 0.7rem; background: #1a1a2e; color: #fff; border: 1px solid #444;">
+                                    <option value="Market">Market</option>
+                                    <option value="Limit">Limit</option>
+                                </select>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="addPosTimes2Main" class="text-secondary small text-uppercase fw-bold"
+                                    style="font-size: 0.65rem;">Times2</label>
+                                <input type="number" class="form-control form-control-sm dashboard-sync"
+                                    id="addPosTimes2Main" data-sync-id="addPosTimes2"
+                                    style="width: 50px; font-size: 0.7rem; background: #1a1a2e; color: #fff; border: 1px solid #444;"
+                                    step="0.1" min="1">
+                            </div>
+                        </div>
+
+                        <!-- Settings Row 2 (Size % & Max Loops) -->
+                        <div
+                            class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 pt-2 border-top border-secondary border-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="addPosSizePctMain" class="text-info small text-uppercase fw-bold"
+                                    style="font-size: 0.65rem;">Size
+                                    %</label>
+                                <input type="number" class="form-control form-control-sm dashboard-sync"
+                                    id="addPosSizePctMain" data-sync-id="addPosSizePct"
+                                    style="width: 55px; font-size: 0.7rem; background: #1a1a2e; color: #fff; border: 1px solid #444;"
+                                    step="1" min="1">
+                                <label for="addPosSizePctOffsetMain" class="text-secondary small text-uppercase fw-bold"
+                                    style="font-size: 0.65rem;">+
+                                    %</label>
+                                <input type="number" class="form-control form-control-sm dashboard-sync"
+                                    id="addPosSizePctOffsetMain" data-sync-id="addPosSizePctOffset"
+                                    style="width: 45px; font-size: 0.7rem; background: #1a1a2e; color: #fff; border: 1px solid #444;"
+                                    step="1" min="0">
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="addPosMaxCountMain" class="text-info small text-uppercase fw-bold"
+                                    style="font-size: 0.65rem;">Max
+                                    Loops</label>
+                                <input type="number" class="form-control form-control-sm dashboard-sync"
+                                    id="addPosMaxCountMain" data-sync-id="addPosMaxCount"
+                                    style="width: 55px; font-size: 0.7rem; background: #1a1a2e; color: #fff; border: 1px solid #444;"
+                                    step="1" min="1">
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="addPosGapThresholdMain" class="text-secondary small text-uppercase fw-bold"
+                                    style="font-size: 0.65rem;">Gap ($)</label>
+                                <input type="number" class="form-control form-control-sm dashboard-sync"
+                                    id="addPosGapThresholdMain" data-sync-id="addPosGapThreshold"
+                                    style="width: 55px; font-size: 0.7rem; background: #1a1a2e; color: #fff; border: 1px solid #444;"
+                                    step="0.1" min="0">
+                                <label for="addPosGapOffsetMain" class="text-secondary small text-uppercase fw-bold"
+                                    style="font-size: 0.65rem;">+</label>
+                                <input type="number" class="form-control form-control-sm dashboard-sync"
+                                    id="addPosGapOffsetMain" data-sync-id="addPosGapOffset"
+                                    style="width: 45px; font-size: 0.7rem; background: #1a1a2e; color: #fff; border: 1px solid #444;"
+                                    step="0.1" min="0">
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="addPosTpOffset2Main" class="text-warning small text-uppercase fw-bold"
+                                    style="font-size: 0.65rem;">TP Offset2</label>
+                                <input type="number" class="form-control form-control-sm dashboard-sync"
+                                    id="addPosTpOffset2Main" data-sync-id="addPosTpOffset2"
+                                    style="width: 55px; font-size: 0.7rem; background: #1a1a2e; color: #fff; border: 1px solid #444;"
+                                    step="0.1" min="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3 border-success">
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                            <div class="stat-item text-center" style="flex: 1;">
+                                <div class="stat-label small text-uppercase">Net Trade Profit</div>
+                                <div class="fw-bold text-info" id="netTradeProfit" style="font-size: 1.1rem;">$0.00
+                                </div>
+                            </div>
+                            <div class="stat-item text-center border-start ps-3" style="flex: 1;">
+                                <div class="stat-label small text-uppercase">Total Trade Profit</div>
+                                <div class="fw-bold text-success" id="totalTradeProfit">$0.00</div>
+                            </div>
+                            <div class="stat-item text-center border-start ps-3" style="flex: 1;">
+                                <div class="stat-label small text-uppercase">Total Trade Loss</div>
+                                <div class="fw-bold text-danger" id="totalTradeLoss">$0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs mb-3" id="dashboardTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="amount-tab" data-bs-toggle="tab" data-bs-target="#amount"
+                            type="button" role="tab" aria-controls="amount" aria-selected="true">Amount</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="log-tab" data-bs-toggle="tab" data-bs-target="#log" type="button"
+                            role="tab" aria-controls="log" aria-selected="false">Log</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="parameters-tab" data-bs-toggle="tab" data-bs-target="#parameters"
+                            type="button" role="tab" aria-controls="parameters"
+                            aria-selected="false">Parameters</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="position-tab" data-bs-toggle="tab" data-bs-target="#position"
+                            type="button" role="tab" aria-controls="position" aria-selected="false">Position</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders"
+                            type="button" role="tab" aria-controls="orders" aria-selected="false">Orders</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#report"
+                            type="button" role="tab" aria-controls="report" aria-selected="false">Report</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="dashboardTabsContent">
+                    <!-- Amount Tab Content -->
+                    <div class="tab-pane fade show active" id="amount" role="tabpanel" aria-labelledby="amount-tab">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Financials</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <!-- Box 1: Capital & Balance -->
+                                    <div class="col-6 col-md-3">
+                                        <div class="stat-card">
+                                            <div class="stat-item mb-3">
+                                                <div class="stat-label">Total Capital</div>
+                                                <div class="stat-value" id="totalCapital">$0.00</div>
+                                            </div>
+                                            <div class="stat-item mb-3">
+                                                <div class="stat-label">Total Capital 2nd</div>
+                                                <div class="stat-value" id="totalCapital2nd">$0.00</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-label">Balance</div>
+                                                <div class="stat-value" id="balance">$0.00</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Box 2: Max Allowed & Max Amount -->
+                                    <div class="col-6 col-md-3">
+                                        <div class="stat-card">
+                                            <div class="stat-item mb-3">
+                                                <div class="stat-label">Max Equity Limit</div>
+                                                <div class="stat-value" id="maxAllowedUsedDisplay">$0.00</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-label">Max Notional Cap</div>
+                                                <div class="stat-value" id="maxAmountDisplay">$0.00</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Box 3: Used & Remaining (Loop Only) -->
+                                    <div class="col-6 col-md-3">
+                                        <div class="stat-card">
+                                            <div class="stat-item mb-3">
+                                                <div class="stat-label">Used (Loop)</div>
+                                                <div class="stat-value" id="usedAmount">$0.00</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-label">Remaining (Loop)</div>
+                                                <div class="stat-value" id="remainingAmount">$0.00</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Box 4: Profits & Trades -->
+                                    <div class="col-6 col-md-3">
+                                        <div class="stat-card">
+                                            <div class="stat-item mb-3">
+                                                <div class="stat-label">Net Profit</div>
+                                                <div class="stat-value" id="netProfit">$0.00</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-label">Trades</div>
+                                                <div class="stat-value" id="totalTrades">0</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Box 5: Size Amount -->
+                                    <div class="col-6 col-md-3">
+                                        <div class="stat-card"
+                                            style="height: 100%; display: flex; align-items: center; justify-content: center;">
+                                            <div class="stat-item text-center">
+                                                <div class="stat-label mb-1"
+                                                    style="font-size: 0.85rem; letter-spacing: 0.5px;">SIZE AMOUNT</div>
+                                                <div class="stat-value text-info" id="sizeAmountDisplay"
+                                                    style="font-size: 1.5rem;">$0.00</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log Tab Content -->
+                    <div class="tab-pane fade" id="log" role="tabpanel" aria-labelledby="log-tab">
+                        <div class="card mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-terminal"></i> Console Output</h5>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-secondary" id="downloadLogsBtn"
+                                        title="Download Log File">
+                                        <i class="bi bi-download"></i> Download
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" id="clearConsoleBtn">
+                                        <i class="bi bi-trash"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div id="consoleOutput" class="console-output"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parameters Tab Content -->
+                    <div class="tab-pane fade" id="parameters" role="tabpanel" aria-labelledby="parameters-tab">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-sliders"></i> Current Parameters</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="currentParams" class="params-display">
+                                    <p class="text-muted">No parameters loaded yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Position Tab Content -->
+                    <div class="tab-pane fade" id="position" role="tabpanel" aria-labelledby="position-tab">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-box-seam"></i> Current Position Detail (Incl. Manual)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="mlStrategyResults">
+                                    <p class="text-muted small">Checking for positions...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orders Tab Content -->
+                    <div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-list-check"></i> Open Orders</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="openTrades" class="trades-container">
+                                    <p class="text-muted">No open orders</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report Tab Content -->
+                    <div class="tab-pane fade" id="report" role="tabpanel" aria-labelledby="report-tab">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Daily Performance Report</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Total Capital</th>
+                                                <th>Net Trade Profit</th>
+                                                <th>Compound Interest</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dailyReportTableBody">
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted py-4">No report data
+                                                    available yet.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="configModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-gear-fill"></i> Configuration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="accordion" id="configAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#generalSettings">
+                                    General Settings
+                                </button>
+                            </h2>
+                            <div id="generalSettings" class="accordion-collapse collapse show"
+                                data-bs-parent="#configAccordion">
+                                <div class="accordion-body">
+                                    <h6 class="fw-bold mb-3 text-primary">User Credentials (Primary)</h6>
+                                    <div class="ms-3 mb-4">
+                                        <h6 class="small fw-bold text-info">User Live API (Real Money)</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Key</label>
+                                            <input type="text" class="form-control form-control-sm" id="okxApiKey">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Secret</label>
+                                            <input type="password" class="form-control form-control-sm"
+                                                id="okxApiSecret">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Passphrase</label>
+                                            <input type="password" class="form-control form-control-sm"
+                                                id="okxPassphrase">
+                                        </div>
+                                    </div>
+
+                                    <div class="ms-3 mb-4">
+                                        <h6 class="small fw-bold text-info">User Demo API (Testnet)</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Key</label>
+                                            <input type="text" class="form-control form-control-sm" id="okxDemoApiKey">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Secret</label>
+                                            <input type="password" class="form-control form-control-sm"
+                                                id="okxDemoApiSecret">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Passphrase</label>
+                                            <input type="password" class="form-control form-control-sm"
+                                                id="okxDemoApiPassphrase">
+                                        </div>
+                                    </div>
+
+                                    <h6 class="fw-bold mb-3 text-info">Developer Credentials (Testing)</h6>
+                                    <div class="ms-3 mb-4">
+                                        <h6 class="small fw-bold text-info">Developer Live API (Real Money)</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Key</label>
+                                            <input type="text" class="form-control form-control-sm" id="devApiKey">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Secret</label>
+                                            <input type="password" class="form-control form-control-sm"
+                                                id="devApiSecret">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Passphrase</label>
+                                            <input type="password" class="form-control form-control-sm"
+                                                id="devPassphrase">
+                                        </div>
+                                    </div>
+
+                                    <div class="ms-3 mb-4">
+                                        <h6 class="small fw-bold text-info">Developer Demo API (Testnet)</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Key</label>
+                                            <input type="text" class="form-control form-control-sm" id="devDemoApiKey">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Secret</label>
+                                            <input type="password" class="form-control form-control-sm"
+                                                id="devDemoApiSecret">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Passphrase</label>
+                                            <input type="password" class="form-control form-control-sm"
+                                                id="devDemoApiPassphrase">
+                                        </div>
+                                    </div>
+
+                                    <hr>
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="useTestnet">
+                                        <label class="form-check-label fw-bold" for="useTestnet">Use Demo Trading
+                                            (Testnet)</label>
+                                    </div>
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="useDeveloperApi">
+                                        <label class="form-check-label fw-bold" for="useDeveloperApi">Testing Mode
+                                            (Use
+                                            Developer API)</label>
+                                    </div>
+                                    <button type="button" class="btn btn-info btn-sm mb-3" id="testApiKeyBtn">
+                                        <i class="bi bi-key-fill"></i> Test Active API Credentials
+                                    </button>
+                                    <hr>
+                                    <div class="mb-3">
+                                        <label class="form-label">Symbol</label>
+                                        <input type="text" class="form-control" id="symbol">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Leverage</label>
+                                        <input type="number" class="form-control" id="leverage" min="1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#strategyParameters">
+                                    Strategy Parameters
+                                </button>
+                            </h2>
+                            <div id="strategyParameters" class="accordion-collapse collapse"
+                                data-bs-parent="#configAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Account Mode</label>
+                                        <select class="form-select" id="okxPosMode">
+                                            <option value="net_mode">One-Way Mode (Net)</option>
+                                            <option value="long_short_mode">Hedge Mode (Long/Short)</option>
+                                        </select>
+                                        <div class="form-text text-warning small">Note: Switching mode requires no
+                                            open
+                                            positions.</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Short Safety Line Price</label>
+                                        <input type="number" class="form-control" id="shortSafetyLinePrice" step="0.01">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Long Safety Line Price</label>
+                                        <input type="number" class="form-control" id="longSafetyLinePrice" step="0.01">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Max Allowed Used (USDT)</label>
+                                        <input type="number" class="form-control" id="maxAllowedUsed" min="1">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Entry Price Offset</label>
+                                        <input type="number" class="form-control" id="entryPriceOffset" step="0.01">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Batch Offset</label>
+                                        <input type="number" class="form-control" id="batchOffset" step="0.01">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">TP Price Offset</label>
+                                        <input type="number" class="form-control" id="tpPriceOffset" step="0.01">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">SL Price Offset</label>
+                                        <input type="number" class="form-control" id="slPriceOffset" step="0.01">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Loop Time (seconds)</label>
+                                        <input type="number" class="form-control" id="loopTimeSeconds" min="1">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Rate Divisor</label>
+                                        <input type="number" class="form-control" id="rateDivisor" min="1">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Batch Size Per Loop</label>
+                                        <input type="number" class="form-control" id="batchSizePerLoop" min="1">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Direction</label>
+                                        <select class="form-select" id="direction">
+                                            <option value="short">Short</option>
+                                            <option value="long">Long</option>
+                                            <option value="both">Both</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Mode</label>
+                                        <select class="form-select" id="mode">
+                                            <option value="cross">Cross</option>
+                                            <option value="isolated">Isolated</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Target Order Amount</label>
+                                        <input type="number" class="form-control" id="targetOrderAmount" step="0.001"
+                                            min="0">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">TP Close Amount (%)</label>
+                                        <input type="number" class="form-control" id="tpAmount" step="0.01" min="0">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">SL Close Amount (%)</label>
+                                        <input type="number" class="form-control" id="slAmount" step="0.01" min="0">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Trigger Price</label>
+                                        <select class="form-select" id="triggerPrice">
+                                            <option value="last">Last</option>
+                                            <option value="market">Market</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">TP Mode</label>
+                                        <select class="form-select" id="tpMode">
+                                            <option value="limit">TP Limit</option>
+                                            <option value="market">TP Market</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">TP Type</label>
+                                        <select class="form-select" id="tpType">
+                                            <option value="oco">OCO TP/SL</option>
+                                            <option value="split">Split TP/SL</option>
+                                        </select>
+                                    </div>
+                                    <hr>
+                                    <h6 class="fw-bold mb-2 small text-primary">TP/SL Close Mode (Avoid Market Jump)
+                                    </h6>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="tpCloseLimit">
+                                                <label class="form-check-label small" for="tpCloseLimit">TP Limit
+                                                    Order</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="tpCloseSameAsTrigger">
+                                                <label class="form-check-label small" for="tpCloseSameAsTrigger">Same as
+                                                    TP Trigger</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2" id="tpClosePriceDiv" style="display:none;">
+                                        <label class="form-label small mb-1">TP Close Price</label>
+                                        <input type="number" class="form-control form-control-sm" id="tpClosePrice"
+                                            step="0.01">
+                                    </div>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="slCloseLimit">
+                                                <label class="form-check-label small" for="slCloseLimit">SL Limit
+                                                    Order</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="slCloseSameAsTrigger">
+                                                <label class="form-check-label small" for="slCloseSameAsTrigger">Same as
+                                                    SL Trigger</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2" id="slClosePriceDiv" style="display:none;">
+                                        <label class="form-label small mb-1">SL Close Price</label>
+                                        <input type="number" class="form-control form-control-sm" id="slClosePrice"
+                                            step="0.01">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Min Order Amount</label>
+                                        <input type="number" class="form-control" id="minOrderAmount" step="0.001">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Cancel Unfilled Order (seconds)</label>
+                                        <input type="number" class="form-control" id="cancelUnfilledSeconds" min="1">
+                                    </div>
+                                    <hr>
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="usePnlAutoCancelModal">
+                                        <label class="form-check-label text-warning fw-bold"
+                                            for="usePnlAutoCancelModal">Auto-Exit on Profit</label>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Target Profit ($)</label>
+                                        <input type="number" class="form-control" id="pnlAutoCancelThresholdModal"
+                                            step="0.01">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#autoAddStrategy">
+                                    Auto-Cal Add Position Strategy (Gap & Martingale)
+                                </button>
+                            </h2>
+                            <div id="autoAddStrategy" class="accordion-collapse collapse"
+                                data-bs-parent="#configAccordion">
+                                <div class="accordion-body">
+                                    <div class="alert alert-info py-2 small">
+                                        Logic: <strong>Gap Trigger</strong> uses Market Orders to balance PnL near
+                                        0.
+                                    </div>
+
+                                    <h6 class="fw-bold mb-2 small text-primary">Gap Trigger (Step 1: Market)</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">Gap Threshold ($)</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" class="form-control" id="addPosGapThreshold" step="0.1"
+                                                placeholder="Base Gap">
+                                            <span class="input-group-text">+ Offset ($)</span>
+                                            <input type="number" class="form-control" id="addPosGapOffset" step="0.1"
+                                                placeholder="Add per Step">
+                                        </div>
+                                        <div class="form-text">Triggers Market Add when Price moves X (+ Offset *
+                                            Step)
+                                            away from last entry.</div>
+                                    </div>
+
+                                    <hr class="my-2">
+                                    <h6 class="fw-bold mb-2 small text-primary">Target Settings</h6>
+
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="useAddPosAboveZero">
+                                        <label class="form-check-label" for="useAddPosAboveZero">Enable PnL > 0
+                                            Maintenance</label>
+                                    </div>
+
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="useAddPosProfitTarget">
+                                        <label class="form-check-label" for="useAddPosProfitTarget">Enable Profit
+                                            Target
+                                            Logic</label>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label class="form-label">Profit Multiplier (x Fee)</label>
+                                                <input type="number" class="form-control" id="addPosProfitMultiplier"
+                                                    step="0.1">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Add Order Type</label>
+                                                <select class="form-select" id="addPosOrderType">
+                                                    <option value="Market">Market</option>
+                                                    <option value="Limit">Limit</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Times2 Multiplier</label>
+                                                <input type="number" class="form-control" id="addPosTimes2" step="0.1"
+                                                    min="1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">TP Offset2 (Additional Price Offset)</label>
+                                        <input type="number" class="form-control" id="addPosTpOffset2" step="0.1"
+                                            min="0">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Auto-Add Size Percentage (%)</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" class="form-control" id="addPosSizePct" step="1"
+                                                placeholder="Base Size %">
+                                            <span class="input-group-text">+ Offset (%)</span>
+                                            <input type="number" class="form-control" id="addPosSizePctOffset" step="1"
+                                                placeholder="Add per Step">
+                                        </div>
+                                        <div class="form-text">Add Amount = Current Size * (Percentage + Offset *
+                                            Step).
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Max Auto-Add Loops</label>
+                                        <input type="number" class="form-control" id="addPosMaxCount" step="1"
+                                            placeholder="e.g. 10">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Step 2 Exit Offset ($)</label>
+                                        <input type="number" class="form-control" id="addPosStep2Offset" step="0.1"
+                                            placeholder="Optional: Overrides Multiplier">
+                                        <div class="form-text">Fixed distance from Avg Entry to place Limit Exit.
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#candlestickConditions">
+                                    Candlestick Entry Conditions
+                                </button>
+                            </h2>
+                            <div id="candlestickConditions" class="accordion-collapse collapse"
+                                data-bs-parent="#configAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="useCandlestickConditions">
+                                        <label class="form-check-label" for="useCandlestickConditions">Use
+                                            Candlestick
+                                            Conditions</label>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Timeframe</label>
+                                        <select class="form-select" id="candlestickTimeframe">
+                                            <option value="1m">1 Minute</option>
+                                            <option value="3m">3 Minutes</option>
+                                            <option value="5m">5 Minutes</option>
+                                            <option value="15m">15 Minutes</option>
+                                            <option value="30m">30 Minutes</option>
+                                            <option value="1h">1 Hour</option>
+                                            <option value="4h">4 Hours</option>
+                                            <option value="1d">1 Day</option>
+                                        </select>
+                                    </div>
+                                    <!-- Chg between Open and Close -->
+                                    <div class="mb-3">
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input" id="useChgOpenClose">
+                                            <label class="form-check-label" for="useChgOpenClose">Chg between Open
+                                                and
+                                                Close</label>
+                                        </div>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Min Chg</span>
+                                            <input type="number" class="form-control" id="minChgOpenClose" step="0.01">
+                                            <span class="input-group-text">Max Chg</span>
+                                            <input type="number" class="form-control" id="maxChgOpenClose" step="0.01">
+                                        </div>
+                                    </div>
+                                    <!-- Chg between High and Low -->
+                                    <div class="mb-3">
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input" id="useChgHighLow">
+                                            <label class="form-check-label" for="useChgHighLow">Chg between High and
+                                                Low</label>
+                                        </div>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Min Chg</span>
+                                            <input type="number" class="form-control" id="minChgHighLow" step="0.01">
+                                            <span class="input-group-text">Max Chg</span>
+                                            <input type="number" class="form-control" id="maxChgHighLow" step="0.01">
+                                        </div>
+                                    </div>
+                                    <!-- Chg between High and Close -->
+                                    <div class="mb-3">
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input" id="useChgHighClose">
+                                            <label class="form-check-label" for="useChgHighClose">Chg between High
+                                                and
+                                                Close</label>
+                                        </div>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Min Chg</span>
+                                            <input type="number" class="form-control" id="minChgHighClose" step="0.01">
+                                            <span class="input-group-text">Max Chg</span>
+                                            <input type="number" class="form-control" id="maxChgHighClose" step="0.01">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#cancelConditions">
+                                    Cancel Conditions
+                                </button>
+                            </h2>
+                            <div id="cancelConditions" class="accordion-collapse collapse"
+                                data-bs-parent="#configAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="cancelOnTpPriceBelowMarket">
+                                        <label class="form-check-label" for="cancelOnTpPriceBelowMarket">
+                                            Cancel if TP price is below market price</label>
+                                    </div>
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="cancelOnTpPriceAboveMarket">
+                                        <label class="form-check-label" for="cancelOnTpPriceAboveMarket">
+                                            Cancel if TP price is above market price</label>
+                                    </div>
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input"
+                                            id="cancelOnEntryPriceBelowMarket">
+                                        <label class="form-check-label" for="cancelOnEntryPriceBelowMarket">
+                                            Cancel if Entry price is below market price (e.g. Short move
+                                            away)</label>
+                                    </div>
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input"
+                                            id="cancelOnEntryPriceAboveMarket">
+                                        <label class="form-check-label" for="cancelOnEntryPriceAboveMarket">
+                                            Cancel if Entry price is above market price (e.g. Long move
+                                            away)</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveConfigBtn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,52 @@
+{
+    "daily_reports": [
+        {
+            "date": "2026-02-18",
+            "total_capital": 74245.96767758045,
+            "net_trade_profit": 0.0,
+            "compound_interest": 1.0
+        },
+        {
+            "date": "2026-02-19",
+            "total_capital": 72847.38147689209,
+            "net_trade_profit": 0.0,
+            "compound_interest": 0.9812
+        },
+        {
+            "date": "2026-03-05",
+            "total_capital": 76711.43180048704,
+            "net_trade_profit": 0.0,
+            "compound_interest": 1.0332
+        },
+        {
+            "date": "2026-03-07",
+            "total_capital": 74495.78557201572,
+            "net_trade_profit": 0.0,
+            "compound_interest": 1.0034
+        },
+        {
+            "date": "2026-03-09",
+            "total_capital": 74274.03894304155,
+            "net_trade_profit": 0.0,
+            "compound_interest": 1.0004
+        },
+        {
+            "date": "2026-03-10",
+            "total_capital": 75032.56240765596,
+            "net_trade_profit": 0.0,
+            "compound_interest": 1.0106
+        },
+        {
+            "date": "2026-03-11",
+            "total_capital": 76012.53945919448,
+            "net_trade_profit": -17.173608430521913,
+            "compound_interest": 1.0238
+        },
+        {
+            "date": "2026-03-14",
+            "total_capital": 76296.36251571418,
+            "net_trade_profit": 0.0,
+            "compound_interest": 1.0276
+        }
+    ]
+}
