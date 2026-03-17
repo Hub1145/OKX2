@@ -109,13 +109,6 @@ class AutoCalManager:
                 if self.engine.in_position[side]:
                     if self._is_adding[side]: continue
 
-                    # Rule: Do not add if there are no common (loop) orders running
-                    loop_orders_for_side = [
-                        o for o in self.engine.open_trades
-                        if self.engine.order_manager.order_contexts.get(o.get('id')) == 'loop'
-                    ]
-                    if not loop_orders_for_side and self.auto_add_step_count[side] == 0:
-                        continue
 
                     # Gap logic: Use current average entry price from position
                     entry = self.engine.position_entry_price[side]
