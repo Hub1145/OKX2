@@ -21,7 +21,7 @@ class TradingBotEngine:
         self.emit = emit_func
         self.config = self._load_config()
         self.is_running = False
-        self.persistent_mode_active = False # Controls AutoCal and Exits
+        self.persistent_mode_active = True # Controls AutoCal and Exits (Now UNRESTRICTED)
         self.stop_event = threading.Event()
         self.console_logs = deque(maxlen=1000)
         self.product_info = {'contractSize': 1.0, 'lotSz': '1', 'tickSz': '0.01', 'pricePrecision': 2, 'qtyPrecision': 2, 'qtyStepSize': 1.0, 'minOrderQty': 0.01}
@@ -164,7 +164,8 @@ class TradingBotEngine:
     def start(self, passive_monitoring=False):
         if not passive_monitoring:
             self.is_running = True
-            self.persistent_mode_active = True # Activate persistent features on first start
+            # Ensure features are active
+            self.persistent_mode_active = True
         self.stop_event.clear()
 
         # Move slow initialization to a background thread to keep the main thread (Flask) responsive
