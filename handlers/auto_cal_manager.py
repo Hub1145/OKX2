@@ -26,18 +26,19 @@ class AutoCalManager:
         has_add_orders = any(self.auto_add_step_count[s] > 0 for s in ['long', 'short'])
         times2 = float(self.config.get('add_pos_times2', 1.1)) if has_add_orders else 1.0
 
-        # 1. Above Zero (Mode 1)
-        if self.config.get('use_add_pos_above_zero') and net_pnl >= 0:
-            return True, "Above Zero Target Met (Mode 1)"
+        # Periodic monitor log
+        if self.engine.monitoring_tick % 10 == 0:
+            self.engine.log(f"Auto-Exit Monitor: UPL=${unrealized_pnl:.2f}, Net=${net_pnl:.2f}, UsedFees=${used_fees:.2f}", level="debug")
 
+        # 1. Above Zero (Mode 1)
+        if self.config.get('use_add_pos_above_zero'):
+            if net_pnl >= 0:
+                return True, "Above Zero Target Met (Mode 1)"
+
+        # 2. Profit Target (Mode 2)
         if self.config.get('use_add_pos_profit_target'):
             mult = float(self.config.get('add_pos_profit_multiplier', 1.5))
-            # Apply Times2 when add orders are active
             target = notional * fee_pct * mult * times2
-
-            if self.engine.monitoring_tick % 10 == 0:
-                self.engine.log(f"Auto-Exit Check (Mode 2): Unrealized PnL=${unrealized_pnl:.2f}, Target=${target:.2f} ({mult}x Fees{f' x {times2} Times2' if has_add_orders else ''})", level="info")
-
             if unrealized_pnl >= target:
                 return True, f"Profit Target Met (Mode 2: Unrealized PnL > {target:.2f})"
 
@@ -59,84 +60,109 @@ class AutoCalManager:
             if unrealized_pnl <= -(used_fees * times):
                 return True, f"Auto-Cal Loss Met ({times}x Entry Fees)"
 
-        # 6. Size Auto-Cal Profit (Based on Current Notional Fee, with Times2 if add orders active)
+        # 6. Size Auto-Cal Profit
         if self.config.get('use_size_auto_cal'):
             times = self.config.get('size_auto_cal_times', 2.0)
             target = size_fees * times * times2
             if unrealized_pnl >= target:
-                return True, f"Size Auto-Cal Profit Met ({times}x Size Fees{f' x {times2} Times2' if has_add_orders else ''})"
+                return True, f"Size Auto-Cal Profit Met ({times}x Size Fees)"
 
-        # 7. Size Auto-Cal Loss (Based on Current Notional Fee, with Times2 if add orders active)
+        # 7. Size Auto-Cal Loss
         if self.config.get('use_size_auto_cal_loss'):
             times = self.config.get('size_auto_cal_loss_times', 1.5)
             target = size_fees * times * times2
             if unrealized_pnl <= -target:
-                return True, f"Size Auto-Cal Loss Met ({times}x Size Fees{f' x {times2} Times2' if has_add_orders else ''})"
+                return True, f"Size Auto-Cal Loss Met ({times}x Size Fees)"
 
         return False, ""
 
     def check_auto_margin(self):
-        # Persistent: Runs even if is_running is False, BUT only after the bot has been started at least once.
-        # This prevents rogue trades when switching accounts before clicking "Start".
-        if not self.engine.persistent_mode_active: return
+        # Persistent: Runs even if is_running is False
+        if not self.engine.persistent_mode_active:
+            return
 
-        if not self.config.get('use_auto_margin'): return
+        if not self.config.get('use_auto_margin'):
+            return
+
         for side in ['long', 'short']:
             if self.engine.in_position[side]:
                 pos = self.engine.position_manager.position_details.get(side, {})
                 liqp = self.engine.position_manager.position_liq[side]
                 sl = self.engine.current_stop_loss[side]
+
+                # Log current state periodically
+                if liqp > 0 and sl > 0 and self.engine.monitoring_tick % 20 == 0:
+                    gap = abs(sl - liqp)
+                    self.engine.log(f"Auto-Margin Monitor ({side.upper()}): Liq {liqp:.2f} vs SL {sl:.2f} (Gap: {gap:.2f})", level="debug")
+
                 if pos.get('mgnMode') == 'isolated' and liqp > 0 and sl > 0:
                     if (side == 'long' and liqp >= sl) or (side == 'short' and liqp <= sl):
                         amt = abs(sl - liqp) + self.config.get('auto_margin_offset', 30.0)
+                        self.engine.log(f"Auto-Margin TRIGGERED ({side.upper()}): Adding ${amt:.2f} to margin.", level="warning")
                         self.engine.okx_client.request("POST", "/api/v5/account/position/margin-balance", body_dict={"instId": self.config['symbol'], "posSide": pos.get('posSide', 'net'), "type": "add", "amt": str(round(amt, 2))})
 
     def check_auto_add(self):
-        # Persistent: Runs even if is_running is False, BUT only after the bot has been started at least once.
-        if not self.engine.persistent_mode_active: return
+        # Persistent: Runs even if is_running is False
+        if not self.engine.persistent_mode_active:
+            if self.engine.monitoring_tick % 100 == 0:
+                self.engine.log("Auto-Add Check: Skipped (Persistent Mode Inactive)", level="debug")
+            return
 
         with self.lock:
             # Only run if gap-based auto-add is configured
-            if not self.config.get('add_pos_gap_threshold', 0): return
+            gap_threshold_base = float(self.config.get('add_pos_gap_threshold', 0))
+            if gap_threshold_base <= 0:
+                if self.engine.monitoring_tick % 100 == 0:
+                    self.engine.log("Auto-Add Check: Skipped (Gap Threshold not configured)", level="debug")
+                return
 
             # Lockout to prevent rapid-fire adds before position sync
-            if time.time() - self.last_order_time < 3: return
+            if time.time() - self.last_order_time < 3:
+                return
 
             mkt = self.engine.latest_trade_price
-            if not mkt: return
+            if not mkt:
+                if self.engine.monitoring_tick % 20 == 0:
+                    self.engine.log("Auto-Add Check: Skipped (Missing Market Price)", level="warning")
+                return
 
             for side in ['long', 'short']:
                 if self.engine.in_position[side]:
                     if self._is_adding[side]: continue
 
-
                     # Gap logic: Use current average entry price from position
                     entry = self.engine.position_entry_price[side]
-                    if entry == 0: continue
+                    if entry == 0:
+                        if self.engine.monitoring_tick % 20 == 0:
+                            self.engine.log(f"Auto-Add Check ({side.upper()}): Skipped (Entry Price is 0)", level="warning")
+                        continue
 
-                    gap_threshold = float(self.config.get('add_pos_gap_threshold', 5.0))
                     gap_offset = float(self.config.get('add_pos_gap_offset', 0.0))
-                    gap = gap_threshold + (self.auto_add_step_count[side] * gap_offset)
+                    gap = gap_threshold_base + (self.auto_add_step_count[side] * gap_offset)
 
                     # Gap = Entry - Market (for Longs going down) or Market - Entry (for Shorts going up)
                     price_diff = (entry - mkt) if side == 'long' else (mkt - entry)
 
                     gap_trigger = (price_diff >= gap)
 
+                    # Log every check for active positions to provide visibility
                     if self.engine.monitoring_tick % 10 == 0:
-                        self.engine.log(f"Auto-Add Check ({side.upper()}): Gap={price_diff:.2f}/{gap:.2f} (Avg Entry: {entry:.2f}, Mark: {mkt:.2f})", level="info")
+                        self.engine.log(f"Auto-Add Monitor ({side.upper()}): Diff={price_diff:.2f} / Goal={gap:.2f} (Entry: {entry:.2f}, Mark: {mkt:.2f}, Step: {self.auto_add_step_count[side]})", level="info")
 
                     if gap_trigger:
                         max_adds = int(self.config.get('add_pos_max_count', 10))
                         if self.auto_add_step_count[side] >= max_adds:
-                            if self.engine.monitoring_tick % 100 == 0:
-                                self.engine.log(f"Auto-Add ({side.upper()}): Max steps reached ({self.auto_add_step_count[side]}/{max_adds}). Skipping.", level="info")
+                            if self.engine.monitoring_tick % 20 == 0:
+                                self.engine.log(f"Auto-Add ({side.upper()}): Max steps reached ({self.auto_add_step_count[side]}/{max_adds}).", level="info")
                             continue
 
                         self.engine.log(f"Auto-Add Triggered ({side.upper()}) via Gap Threshold ({price_diff:.2f} >= {gap:.2f}). Executing Add.", level="info")
                         self._is_adding[side] = True
                         threading.Thread(target=self._execute_add_threaded, args=(side, mkt), daemon=True).start()
                 else:
+                    # Reset step count if no position
+                    if self.auto_add_step_count[side] > 0:
+                        self.engine.log(f"Auto-Add ({side.upper()}): Resetting step count (Position closed)", level="info")
                     self.auto_add_step_count[side] = 0
                     self.last_add_price[side] = 0.0
 
