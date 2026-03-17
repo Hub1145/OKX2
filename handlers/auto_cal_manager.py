@@ -12,6 +12,7 @@ class AutoCalManager:
         self.last_add_price = {'long': 0.0, 'short': 0.0}
         self.last_order_time = 0
         self._is_adding = {'long': False, 'short': False}
+        self.last_heartbeat_time = 0
 
     def check_auto_exit(self, net_pnl, unrealized_pnl):
         notional = self.engine.cached_pos_notional
@@ -109,6 +110,17 @@ class AutoCalManager:
             return
 
         with self.lock:
+            # Heartbeat log every 30s to verify the method is running
+            if time.time() - self.last_heartbeat_time > 30:
+                self.engine.log("AUTO-CAL: check_auto_add heartbeat (Persistent Mode: ACTIVE)", level="debug")
+                self.last_heartbeat_time = time.time()
+
+            # Check configuration flag explicitly
+            if not self.config.get('use_add_pos_auto_cal'):
+                if self.engine.monitoring_tick % 100 == 0:
+                    self.engine.log("AUTO-CAL: check_auto_add skipped (use_add_pos_auto_cal is False)", level="debug")
+                return
+
             # Only run if gap-based auto-add is configured
             gap_threshold_base = float(self.config.get('add_pos_gap_threshold', 0))
             if gap_threshold_base <= 0:
@@ -132,9 +144,9 @@ class AutoCalManager:
 
                     # Gap logic: Use current average entry price from position
                     entry = self.engine.position_entry_price[side]
-                    if entry == 0:
+                    if not entry or entry == 0:
                         if self.engine.monitoring_tick % 20 == 0:
-                            self.engine.log(f"Auto-Add Check ({side.upper()}): Skipped (Entry Price is 0)", level="warning")
+                            self.engine.log(f"AUTO-CAL ({side.upper()}): Skipped (No active position or entry price is 0)", level="debug")
                         continue
 
                     gap_offset = float(self.config.get('add_pos_gap_offset', 0.0))
@@ -260,7 +272,7 @@ class AutoCalManager:
             self.last_add_price[side] = price
 
         if self.engine.order_manager.place_order(self.config['symbol'], "buy" if side == "long" else "sell", sz,
-                                                 order_type=add_order_type, posSide=actual_pos_side, tdMode=actual_mgn_mode,
+                                                 price=price, order_type=add_order_type, posSide=actual_pos_side, tdMode=actual_mgn_mode,
                                                  take_profit_price=tp, stop_loss_price=sl,
                                                  context='autocal'):
             return True

@@ -161,7 +161,7 @@ class OrderManager:
                         detail_msg = f" | Detail: {d.get('sMsg')} (sCode: {d.get('sCode')})"
 
                 # Log more details for non-zero codes to help debugging
-                self.engine.log(f"Order failed: {msg}{detail_msg} (Code: {code}). Request: sz={body.get('sz')}, px={body.get('px', 'MKT')}, side={body.get('side')}, tdMode={body.get('tdMode')}, posSide={body.get('posSide')}, algo={bool(body.get('attachAlgoOrds'))}", level="error")
+                self.engine.log(f"Order failed: {msg}{detail_msg} (Code: {code}). Request: sz={body.get('sz')}, px={body.get('px', 'MKT')}, side={body.get('side')}, ordType={body.get('ordType')}, tdMode={body.get('tdMode')}, posSide={body.get('posSide')}, algo={bool(body.get('attachAlgoOrds'))}", level="error")
             return None
         except Exception as e:
             self.engine.log(f"Order fail: {e}", level="error")

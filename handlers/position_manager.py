@@ -54,7 +54,11 @@ class PositionManager:
 
             prev_qtys = {k: v for k, v in self.position_qty.items()}
             for pos in positions_data:
-                if pos.get('instId', '').strip().upper() == target_symbol:
+                symbol_raw = pos.get('instId', '').strip().upper()
+                if symbol_raw != target_symbol and safe_float(pos.get('pos')) != 0:
+                    self.engine.log(f"POS-SYNC: Detected position for OTHER symbol: {symbol_raw} (Target: {target_symbol})", level="debug")
+                
+                if symbol_raw == target_symbol:
                     qty_raw = safe_float(pos.get('pos'))
                     if qty_raw == 0 and is_snapshot: continue
                     side_key = self._map_side(pos.get('posSide', 'net'), qty=qty_raw)
