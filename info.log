@@ -175,3 +175,14 @@
 2026-03-14 09:45:45,113 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:45] "GET /api/status HTTP/1.1" 200 -
 2026-03-14 09:45:51,340 - INFO - Client disconnected
 2026-03-14 09:45:51,400 - INFO - 127.0.0.1 - - [14/Mar/2026 09:45:51] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-03-17 14:10:49,979 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.2.0.2:5000
+2026-03-17 14:10:49,980 - INFO - [33mPress CTRL+C to quit[0m
+2026-03-17 14:10:55,090 - INFO - Product Info Updated for ETH-USDT-SWAP: ContractSize=0.1, LotSz=0.01
+2026-03-17 14:10:59,032 - INFO - Baseline initialized: Long=0.0, Short=0.0 contracts
+2026-03-17 14:11:01,122 - INFO - Bot initialized and started (Mode: Passive)
+2026-03-17 14:11:03,141 - INFO - Websocket connected
+2026-03-17 14:11:03,166 - INFO - Websocket connected
+2026-03-17 14:11:03,608 - INFO - WebSocket Login Successful.

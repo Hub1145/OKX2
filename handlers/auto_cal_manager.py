@@ -199,13 +199,17 @@ class AutoCalManager:
         max_notional_cap = self.engine.max_amount_display
         equity = self.engine.total_equity
         sanity_ceiling = float('inf')
+        
+        # Relaxed Cap: We allow strategic add-ons much larger than the initial loop, 
+        # but we still cap at 100x Loop Size or 2x Equity to prevent total account destruction.
         if max_notional_cap > 0:
-            sanity_ceiling = min(sanity_ceiling, max_notional_cap * 2.0)
+            sanity_ceiling = min(sanity_ceiling, max_notional_cap * 100.0)
+        
         if equity > 0:
-            sanity_ceiling = min(sanity_ceiling, equity * 2.0)
+            sanity_ceiling = min(sanity_ceiling, equity * 1.5) # Allow using up to 150% of equity (leverage)
 
         if final_notional > sanity_ceiling:
-            self.engine.log(f"Auto-Add ({side.upper()}): Capping order notional {final_notional:.2f} to sanity ceiling {sanity_ceiling:.2f}", level="warning")
+            self.engine.log(f"Auto-Add ({side.upper()}): Capping order notional {final_notional:.2f} to safety ceiling {sanity_ceiling:.2f}", level="warning")
             final_notional = sanity_ceiling
 
         # Safety Cap 2: Add orders draw from Total Capital 2nd budget.

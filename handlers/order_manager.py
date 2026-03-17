@@ -20,6 +20,23 @@ class OrderManager:
     def _calculate_tpsl_prices(self, side, entry_price):
         tp_offset = safe_float(self.config.get('tp_price_offset'), 0)
         sl_offset = safe_float(self.config.get('sl_price_offset'), 0)
+        
+        # Recovery/Auto-Add Offset Adjustments
+        # If any add-on steps have been taken, we apply the specialized recovery exit logic
+        step_count = self.engine.auto_cal_manager.auto_add_step_count[side]
+        if step_count > 0:
+            # Priority 1: Step 2 Offset (Relative to New Avg Entry)
+            step2_offset = safe_float(self.config.get('add_pos_step2_offset'), 0)
+            if step2_offset > 0:
+                tp_offset = step2_offset
+                self.engine.log(f"TP-CALC ({side.upper()}): Step 2 Offset detected ({step2_offset}). Overriding base offset.", level="debug")
+            else:
+                # Priority 2: TP Offset 2 (Additional Offset)
+                offset2 = safe_float(self.config.get('add_pos_tp_offset2'), 0)
+                if offset2 > 0:
+                    tp_offset += offset2
+                    self.engine.log(f"TP-CALC ({side.upper()}): Offset2 detected ({offset2}). Total TP Offset: {tp_offset}", level="debug")
+
         tp_price = 0.0
         sl_price = 0.0
         p_prec = self.engine.product_info.get('pricePrecision', 2)
