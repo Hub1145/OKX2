@@ -16,7 +16,7 @@ class AutoCalManager:
 
     def check_auto_exit(self, net_pnl, unrealized_pnl):
         notional = self.engine.cached_pos_notional
-        if notional <= 0: return False, ""
+        if notional <= 0: return False, "", {}, False
 
         fee_pct = self.config.get('trade_fee_percentage', 0.08) / 100.0
         # Use aggregate fees for thresholds
@@ -31,51 +31,77 @@ class AutoCalManager:
         if self.engine.monitoring_tick % 10 == 0:
             self.engine.log(f"Auto-Exit Monitor: UPL=${unrealized_pnl:.2f}, Net=${net_pnl:.2f}, UsedFees=${used_fees:.2f}", level="debug")
 
+        target_prices = {}
+
         # 1. Above Zero (Mode 1)
         if self.config.get('use_add_pos_above_zero'):
             if net_pnl >= 0:
-                return True, "Above Zero Target Met (Mode 1)"
+                for s in ['long', 'short']:
+                    if self.engine.in_position[s]:
+                        target_upl = self.engine.position_manager.current_entry_fees.get(s, 0.0) + self.engine.position_manager.realized_loss_this_cycle.get(s, 0.0)
+                        target_prices[s] = self.engine.position_manager.calculate_target_price(s, target_upl)
+                return True, "Above Zero Target Met (Mode 1)", target_prices, True
 
         # 2. Profit Target (Mode 2)
         if self.config.get('use_add_pos_profit_target'):
             mult = float(self.config.get('add_pos_profit_multiplier', 1.5))
             target = notional * fee_pct * mult * times2
             if unrealized_pnl >= target:
-                return True, f"Profit Target Met (Mode 2: Unrealized PnL > {target:.2f})"
+                for s in ['long', 'short']:
+                    if self.engine.in_position[s]:
+                        target_prices[s] = self.engine.position_manager.calculate_target_price(s, target)
+                return True, f"Profit Target Met (Mode 2: Unrealized PnL > {target:.2f})", target_prices, True
 
         # 3. Auto-Manual Threshold
         if self.config.get('use_pnl_auto_manual'):
             threshold = self.config.get('pnl_auto_manual_threshold', 100.0)
             if unrealized_pnl >= threshold:
-                return True, f"Manual PnL Threshold {threshold} Met"
+                for s in ['long', 'short']:
+                    if self.engine.in_position[s]:
+                        target_prices[s] = self.engine.position_manager.calculate_target_price(s, threshold)
+                return True, f"Manual PnL Threshold {threshold} Met", target_prices, True
 
         # 4. Auto-Cal Profit (Based on Entry Fees)
         if self.config.get('use_pnl_auto_cal'):
             times = self.config.get('pnl_auto_cal_times', 1.2)
-            if unrealized_pnl >= (used_fees * times):
-                return True, f"Auto-Cal Profit Met ({times}x Entry Fees)"
+            target = used_fees * times
+            if unrealized_pnl >= target:
+                for s in ['long', 'short']:
+                    if self.engine.in_position[s]:
+                        target_prices[s] = self.engine.position_manager.calculate_target_price(s, target)
+                return True, f"Auto-Cal Profit Met ({times}x Entry Fees)", target_prices, True
 
         # 5. Auto-Cal Loss (Based on Entry Fees)
         if self.config.get('use_pnl_auto_cal_loss'):
             times = self.config.get('pnl_auto_cal_loss_times', 15.0)
-            if unrealized_pnl <= -(used_fees * times):
-                return True, f"Auto-Cal Loss Met ({times}x Entry Fees)"
+            target = -(used_fees * times)
+            if unrealized_pnl <= target:
+                for s in ['long', 'short']:
+                    if self.engine.in_position[s]:
+                        target_prices[s] = self.engine.position_manager.calculate_target_price(s, target)
+                return True, f"Auto-Cal Loss Met ({times}x Entry Fees)", target_prices, False
 
         # 6. Size Auto-Cal Profit
         if self.config.get('use_size_auto_cal'):
             times = self.config.get('size_auto_cal_times', 2.0)
             target = size_fees * times * times2
             if unrealized_pnl >= target:
-                return True, f"Size Auto-Cal Profit Met ({times}x Size Fees)"
+                for s in ['long', 'short']:
+                    if self.engine.in_position[s]:
+                        target_prices[s] = self.engine.position_manager.calculate_target_price(s, target)
+                return True, f"Size Auto-Cal Profit Met ({times}x Size Fees)", target_prices, True
 
         # 7. Size Auto-Cal Loss
         if self.config.get('use_size_auto_cal_loss'):
             times = self.config.get('size_auto_cal_loss_times', 1.5)
-            target = size_fees * times * times2
-            if unrealized_pnl <= -target:
-                return True, f"Size Auto-Cal Loss Met ({times}x Size Fees)"
+            target = -(size_fees * times * times2)
+            if unrealized_pnl <= target:
+                for s in ['long', 'short']:
+                    if self.engine.in_position[s]:
+                        target_prices[s] = self.engine.position_manager.calculate_target_price(s, target)
+                return True, f"Size Auto-Cal Loss Met ({times}x Size Fees)", target_prices, False
 
-        return False, ""
+        return False, "", {}, False
 
     def check_auto_margin(self):
         # Persistent: Runs even if is_running is False

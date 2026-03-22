@@ -217,6 +217,24 @@ class PositionManager:
         if res and res.get('code') == '0':
             self.process_positions(res.get('data', []), is_snapshot=True)
 
+    def calculate_target_price(self, side, target_upl):
+        """Calculates the price required for a position to reach a specific Unrealized PnL."""
+        qty = abs(self.position_qty[side])
+        entry = self.position_entry_price[side]
+        if qty <= 0: return None
+
+        p_prec = self.engine.product_info.get('pricePrecision', 2)
+        contract_size = safe_float(self.engine.product_info.get('contractSize', 1.0))
+
+        # UPL = (Price - Entry) * Qty * ContractSize (for Long)
+        # Price = (UPL / (Qty * ContractSize)) + Entry
+        if side == 'long':
+            return round((target_upl / (qty * contract_size)) + entry, p_prec)
+        else:
+            # UPL = (Entry - Price) * Qty * ContractSize (for Short)
+            # Price = Entry - (UPL / (Qty * ContractSize))
+            return round(entry - (target_upl / (qty * contract_size)), p_prec)
+
     def add_realized_pnl(self, ord_id, pnl, fee, raw_side, qty=0):
         with self.engine.lock:
             net = pnl + fee
