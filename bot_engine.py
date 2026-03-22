@@ -273,9 +273,9 @@ class TradingBotEngine:
                         # REAL-TIME EXIT CHECK (ALIGNED WITH OKX UPL)
                         if self.persistent_mode_active:
                             net_pnl = self.net_profit
-                            triggered, reason = self.auto_cal_manager.check_auto_exit(net_pnl, self.cached_unrealized_pnl)
+                            triggered, reason, target_prices, is_tp = self.auto_cal_manager.check_auto_exit(net_pnl, self.cached_unrealized_pnl)
                             if triggered:
-                                threading.Thread(target=self.execute_auto_exit, args=(reason,), daemon=True).start()
+                                threading.Thread(target=self.execute_auto_exit, args=(reason, target_prices, is_tp), daemon=True).start()
                     self._emit_socket_updates(throttle=True)
             elif channel == 'positions' and data:
                 self.position_manager.process_positions(data, is_snapshot=(action == 'snapshot'))
@@ -362,7 +362,7 @@ class TradingBotEngine:
         self.emit('bot_status', {'running': self.is_running})
         self.emit('trades_update', {'trades': self.open_trades})
 
-    def execute_auto_exit(self, reason="Manual"):
+    def execute_auto_exit(self, reason="Manual", target_prices=None, is_tp=False):
         with self.exit_lock:
             if self.authoritative_exit_in_progress: return
             self.authoritative_exit_in_progress = True
@@ -384,12 +384,29 @@ class TradingBotEngine:
                         actual_pos_side = pos_detail.get('posSide', 'net')
                         actual_mgn_mode = pos_detail.get('mgnMode', self.config.get('mode', 'cross'))
 
-                        self.log(f"Closing {s} position: {qty} contracts (posSide: {actual_pos_side}, tdMode: {actual_mgn_mode})", level="info")
+                        # Determine Order Type based on config and reason
+                        order_type = "Market"
+                        limit_price = None
+
+                        # Respect TP Mode for Auto-Cal Exits if it's a TP event
+                        if is_tp:
+                            tp_mode = self.config.get('tp_mode', 'limit').lower()
+                            use_limit = (tp_mode == 'limit') or self.config.get('tp_close_limit', False)
+
+                            if use_limit:
+                                order_type = "Limit"
+                                if target_prices and target_prices.get(s):
+                                    limit_price = target_prices[s]
+                                else:
+                                    limit_price = self.latest_trade_price
+
+                        self.log(f"Closing {s} position: {qty} contracts ({order_type} @ {limit_price if limit_price else 'MKT'}, posSide: {actual_pos_side}, tdMode: {actual_mgn_mode})", level="info")
                         self.order_manager.place_order(
                             self.config['symbol'],
                             "sell" if s == "long" else "buy",
                             qty,
-                            order_type="Market",
+                            price=limit_price,
+                            order_type=order_type,
                             posSide=actual_pos_side,
                             tdMode=actual_mgn_mode,
                             reduce_only=True
