@@ -150,19 +150,32 @@ class PositionManager:
         self.cached_pos_notional = temp_notional
 
     def _map_side(self, raw_side, qty=0):
+        """Maps OKX side strings and quantities to internal side keys ('long', 'short')."""
+        if not raw_side: return self.config.get('direction', 'long')
+
+        raw_side = str(raw_side).lower()
         if raw_side == 'short': return 'short'
         if raw_side == 'long': return 'long'
-        if raw_side == 'net' or not raw_side:
+
+        # If 'buy' or 'sell' is passed directly
+        if raw_side == 'buy': return 'long'
+        if raw_side == 'sell': return 'short'
+
+        # Handle One-way (net) mode or omitted side
+        if raw_side == 'net':
+            # Priority 1: Use quantity sign if provided (buy > 0, sell < 0)
             if qty > 0: return 'long'
             if qty < 0: return 'short'
 
-            # If qty is 0, we are likely closing.
-            # Check if we are currently in a position to determine the side.
+            # Priority 2: Use current active position if we have only one side
             if self.in_position['long'] and not self.in_position['short']: return 'long'
             if self.in_position['short'] and not self.in_position['long']: return 'short'
 
-        side_key = self.config.get('direction', 'long')
-        return 'long' if side_key == 'both' else side_key
+            # Priority 3: Use configured direction
+            side_key = self.config.get('direction', 'long')
+            return 'long' if side_key == 'both' else side_key
+
+        return self.config.get('direction', 'long')
 
     def add_fee(self, fee, raw_side, qty=0):
         self.total_fees += abs(fee)
@@ -221,19 +234,22 @@ class PositionManager:
         """Calculates the price required for a position to reach a specific Unrealized PnL."""
         qty = abs(self.position_qty[side])
         entry = self.position_entry_price[side]
-        if qty <= 0: return None
+        if qty <= 0 or entry <= 0: return None
 
         p_prec = self.engine.product_info.get('pricePrecision', 2)
         contract_size = safe_float(self.engine.product_info.get('contractSize', 1.0))
 
-        # UPL = (Price - Entry) * Qty * ContractSize (for Long)
-        # Price = (UPL / (Qty * ContractSize)) + Entry
-        if side == 'long':
-            return round((target_upl / (qty * contract_size)) + entry, p_prec)
-        else:
-            # UPL = (Entry - Price) * Qty * ContractSize (for Short)
-            # Price = Entry - (UPL / (Qty * ContractSize))
-            return round(entry - (target_upl / (qty * contract_size)), p_prec)
+        try:
+            if side == 'long':
+                price = (target_upl / (qty * contract_size)) + entry
+            else:
+                price = entry - (target_upl / (qty * contract_size))
+
+            result = round(price, p_prec)
+            self.engine.log(f"Calc Target Price ({side.upper()}): UPL={target_upl:.4f}, Qty={qty}, Entry={entry} -> Target={result}", level="debug")
+            return result
+        except ZeroDivisionError:
+            return None
 
     def add_realized_pnl(self, ord_id, pnl, fee, raw_side, qty=0):
         with self.engine.lock:

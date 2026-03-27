@@ -14,9 +14,10 @@ class StrategyManager:
         if not self.engine.indicator_manager.check_candlestick_conditions():
             return []
 
-        # If we are already in position or exiting, skip strategy entry (unless both directions allowed)
-        # However, for One-Way mode especially, we should check if we already have the side we want.
+        # One-way Mode Safety: Prevent entering opposite side if position exists
         in_pos = self.engine.in_position
+        pos_mode = self.config.get('okx_pos_mode', 'net_mode')
+
         authoritative_exit = getattr(self.engine, 'authoritative_exit_in_progress', False)
         if authoritative_exit: return []
 
@@ -34,7 +35,10 @@ class StrategyManager:
         signals = []
         # Check Long
         if direction in ['long', 'both']:
-            if long_line > 0 and price <= long_line:
+            # Safety: In One-way mode, don't enter Long if we have a Short position
+            if pos_mode == 'net_mode' and in_pos['short']:
+                pass
+            elif long_line > 0 and price <= long_line:
                 # Continuous placement: check if we have remaining budget
                 if self.engine.remaining_amount_notional > self.config.get('min_order_amount', 10):
                     self.engine.log(f"Long Signal Triggered: Price {price} <= {long_line}", level="info")
@@ -46,7 +50,10 @@ class StrategyManager:
 
         # Check Short
         if direction in ['short', 'both']:
-            if short_line > 0 and price >= short_line:
+            # Safety: In One-way mode, don't enter Short if we have a Long position
+            if pos_mode == 'net_mode' and in_pos['long']:
+                pass
+            elif short_line > 0 and price >= short_line:
                 # Continuous placement: check if we have remaining budget
                 if self.engine.remaining_amount_notional > self.config.get('min_order_amount', 10):
                     self.engine.log(f"Short Signal Triggered: Price {price} >= {short_line}", level="info")

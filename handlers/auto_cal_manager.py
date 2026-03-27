@@ -238,11 +238,7 @@ class AutoCalManager:
             self.engine.log(f"Auto-Add ({side.upper()}): Capping order notional {final_notional:.2f} to safety ceiling {sanity_ceiling:.2f}", level="warning")
             final_notional = sanity_ceiling
 
-        # Safety Cap 2: Add orders draw from Total Capital 2nd budget.
-        cap2nd = self.engine.total_capital_2nd
-        if cap2nd > 0 and final_notional > cap2nd:
-            self.engine.log(f"Auto-Add ({side.upper()}): Capping to Total Capital 2nd budget {cap2nd:.2f} (requested {final_notional:.2f})", level="info")
-            final_notional = cap2nd
+        # Safety Cap 2: Relaxed budget cap for Auto-Cal (Independent of loop capacity)
 
         if final_notional <= 0:
             self.engine.log(f"Auto-Add ({side.upper()}): Calculated add amount is 0 or less. Skipping.", level="info")

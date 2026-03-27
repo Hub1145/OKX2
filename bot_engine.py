@@ -291,42 +291,46 @@ class TradingBotEngine:
                 for o in data:
                     ord_id = o.get('ordId')
                     raw_side = o.get('posSide', 'net')
+                    side = o.get('side') # buy/sell
                     sz = safe_float(o.get('sz'))
                     acc_fill = safe_float(o.get('accFillSz', 0))
                     prev_fill = self.order_manager.order_fills.get(ord_id, 0.0)
                     fill_delta = acc_fill - prev_fill
                     state = o.get('state')
+                    fee = safe_float(o.get('fillFee', 0))
+                    pnl = safe_float(o.get('fillPnl', 0))
+
+                    # Disambiguate position side for One-way mode
+                    target_pos_side = raw_side
+                    if raw_side == 'net' or not raw_side:
+                        if pnl != 0: # Closing trade (only closing trades have fillPnl)
+                            target_pos_side = 'short' if side == 'buy' else 'long'
+                        else: # Opening trade
+                            target_pos_side = 'long' if side == 'buy' else 'short'
+
+                    # Ensure it's mapped to internal 'long' or 'short'
+                    mapped_side = self.position_manager._map_side(target_pos_side)
 
                     # Track loop quantity based on order context
                     context = self.order_manager.order_contexts.get(ord_id)
 
                     # Trigger TP/SL readjustment if an autocal add order is filled
                     if context == 'autocal' and acc_fill > prev_fill and state in ['filled', 'partially_filled']:
-                        side_key = self.position_manager._map_side(raw_side, qty=(sz if o.get('side') == 'buy' else -sz))
-                        self.log(f"Auto-Cal Add Order Filled. Triggering TP/SL readjustment for {side_key} position.", level="info")
+                        self.log(f"Auto-Cal Add Order Filled. Triggering TP/SL readjustment for {mapped_side} position.", level="info")
                         # We defer the actual placement slightly to allow position to sync or use the last known avgPx
                         self._should_update_tpsl = True
 
                     if context == 'loop' and fill_delta > 0:
                         # Update tracked fill size
                         self.order_manager.order_fills[ord_id] = acc_fill
-
-                        # Determine if this order is opening or closing
-                        side = o.get('side') # buy/sell
-                        pos_side_key = self.position_manager._map_side(raw_side, qty=(sz if side == 'buy' else -sz))
-
-                        # Determine if this order is opening or closing
                         # In One-way mode, buy always adds to long (or reduces short)
-                        is_adding = (side == 'buy' and pos_side_key == 'long') or (side == 'sell' and pos_side_key == 'short')
-
+                        is_adding = (side == 'buy' and mapped_side == 'long') or (side == 'sell' and mapped_side == 'short')
                         delta = fill_delta if is_adding else -fill_delta
-                        self.position_manager.update_loop_qty(pos_side_key, delta)
-                        self.log(f"Loop Qty Updated: {pos_side_key} {delta:+.4f} (Context: {context})", level="debug")
+                        self.position_manager.update_loop_qty(mapped_side, delta)
+                        self.log(f"Loop Qty Updated: {mapped_side} {delta:+.4f} (Context: {context})", level="debug")
 
-                    fee = safe_float(o.get('fillFee', 0))
-                    if fee != 0: self.position_manager.add_fee(fee, raw_side, qty=sz)
-                    pnl = safe_float(o.get('fillPnl', 0))
-                    if pnl != 0: self.position_manager.add_realized_pnl(ord_id, pnl, fee, raw_side, qty=sz)
+                    if fee != 0: self.position_manager.add_fee(fee, mapped_side)
+                    if pnl != 0: self.position_manager.add_realized_pnl(ord_id, pnl, fee, mapped_side)
                 self.order_manager.sync_open_orders(self.config['symbol'])
 
     def _emit_socket_updates(self, throttle=False):

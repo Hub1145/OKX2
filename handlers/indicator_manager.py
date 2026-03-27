@@ -12,17 +12,17 @@ class IndicatorManager:
 
     def fetch_historical_data(self, symbol, timeframe):
         try:
-            # Logic from _fetch_historical_data_okx
             path = "/api/v5/market/history-candles"
-            interval_sec = self.engine.intervals.get(timeframe, 60)
-            end_dt = datetime.now(timezone.utc)
-            start_dt = end_dt - timedelta(seconds=interval_sec * 300)
+            # OKX history-candles parameters:
+            # after: Pagination of data before this timestamp (exclusive), e.g. 1597026383085
+            # before: Pagination of data after this timestamp (exclusive), e.g. 1597026383085
+            # To get the latest 300 candles, we just need the end timestamp.
+            now_ms = int(time.time() * 1000)
 
             params = {
                 "instId": symbol,
                 "bar": timeframe,
-                "after": str(int(end_dt.timestamp() * 1000)),
-                "before": str(int(start_dt.timestamp() * 1000)),
+                "after": str(now_ms),
                 "limit": "300"
             }
 

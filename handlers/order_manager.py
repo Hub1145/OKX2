@@ -17,101 +17,109 @@ class OrderManager:
         self.open_trades = []
         self.batch_counter = 0
 
-    def _get_tp_px(self, trigger_price):
+    def _get_tp_px(self, trigger_price, side):
         tp_px = "-1"
+        p_prec = self.engine.product_info.get('pricePrecision', 2)
         if self.config.get('tp_mode', 'limit').lower() == 'limit' or self.config.get('tp_close_limit'):
             if self.config.get('tp_close_same_as_trigger'):
-                tp_px = str(trigger_price)
+                tp_px = f"{trigger_price:.{p_prec}f}"
             else:
                 conf_px = safe_float(self.config.get('tp_close_price', 0))
-                tp_px = str(conf_px) if conf_px > 0 else str(trigger_price)
+                # Safety: Check if absolute price is reasonable (within 50% of trigger)
+                if conf_px > 0 and 0.5 * trigger_price < conf_px < 1.5 * trigger_price:
+                    tp_px = f"{conf_px:.{p_prec}f}"
+                else:
+                    tp_px = f"{trigger_price:.{p_prec}f}"
         return tp_px
 
-    def _get_sl_px(self, trigger_price):
+    def _get_sl_px(self, trigger_price, side):
         sl_px = "-1"
+        p_prec = self.engine.product_info.get('pricePrecision', 2)
         if self.config.get('sl_close_limit'):
             if self.config.get('sl_close_same_as_trigger'):
-                sl_px = str(trigger_price)
+                sl_px = f"{trigger_price:.{p_prec}f}"
             else:
                 conf_px = safe_float(self.config.get('sl_close_price', 0))
-                sl_px = str(conf_px) if conf_px > 0 else str(trigger_price)
+                # Safety: Check if absolute price is reasonable (within 50% of trigger)
+                if conf_px > 0 and 0.5 * trigger_price < conf_px < 1.5 * trigger_price:
+                    sl_px = f"{conf_px:.{p_prec}f}"
+                else:
+                    sl_px = f"{trigger_price:.{p_prec}f}"
         return sl_px
 
-    def _calculate_tpsl_prices(self, side, entry_price):
+    def _calculate_tpsl_prices(self, side, reference_price):
+        """Calculates TP and SL prices. side is the trade direction ('buy'/'sell') or position side ('long'/'short')."""
+        # Use PositionManager._map_side for robust side normalization
+        pos_side = self.engine.position_manager._map_side(side)
+
         tp_offset = safe_float(self.config.get('tp_price_offset'), 0)
         sl_offset = safe_float(self.config.get('sl_price_offset'), 0)
         
         # Recovery/Auto-Add Offset Adjustments
-        # If any add-on steps have been taken, we apply the specialized recovery exit logic
-        step_count = self.engine.auto_cal_manager.auto_add_step_count[side]
+        step_count = self.engine.auto_cal_manager.auto_add_step_count[pos_side]
 
         tp_price = 0.0
         sl_price = 0.0
         p_prec = self.engine.product_info.get('pricePrecision', 2)
         contract_size = safe_float(self.engine.product_info.get('contractSize', 1.0))
 
-        # Check for specialized Auto-Cal targets first
-        if step_count > 0 or self.config.get('use_add_pos_profit_target') or self.config.get('use_add_pos_above_zero'):
-            # 1. Above Zero Target
-            if self.config.get('use_add_pos_above_zero'):
-                target_upl = self.engine.position_manager.current_entry_fees.get(side, 0.0) + self.engine.position_manager.realized_loss_this_cycle.get(side, 0.0)
-                qty = abs(self.engine.position_qty[side])
-                if qty > 0:
-                    if side == 'long':
-                        tp_price = round((target_upl / (qty * contract_size)) + entry_price, p_prec)
-                    else:
-                        tp_price = round(entry_price - (target_upl / (qty * contract_size)), p_prec)
-                    self.engine.log(f"TP-CALC ({side.upper()}): Above Zero Target price calculated: {tp_price}", level="debug")
+        # 1. Specialized Auto-Cal Targets (Apply only if we have an ACTIVE position of the SAME side)
+        qty_abs = abs(self.engine.position_qty[pos_side])
+        pos_entry = self.engine.position_entry_price[pos_side]
 
-            # 2. Profit Target (Overrides Above Zero if higher/enabled)
+        if qty_abs > 0 and pos_entry > 0 and (step_count > 0 or self.config.get('use_add_pos_profit_target') or self.config.get('use_add_pos_above_zero')):
+            # 1.1 Above Zero Target
+            if self.config.get('use_add_pos_above_zero'):
+                target_upl = self.engine.position_manager.current_entry_fees.get(pos_side, 0.0) + self.engine.position_manager.realized_loss_this_cycle.get(pos_side, 0.0)
+                calc_tp = self.engine.position_manager.calculate_target_price(pos_side, target_upl)
+                if calc_tp:
+                    # Validate against reference_price to ensure it's a valid trigger for the NEW order
+                    is_valid = (pos_side == 'long' and calc_tp > reference_price) or (pos_side == 'short' and calc_tp < reference_price)
+                    if is_valid:
+                        tp_price = calc_tp
+                        self.engine.log(f"TP-CALC ({pos_side.upper()}): Above Zero Target trigger: {tp_price}", level="debug")
+
+            # 1.2 Profit Target (Overrides Above Zero if more favorable)
             if self.config.get('use_add_pos_profit_target'):
                 fee_pct = self.config.get('trade_fee_percentage', 0.08) / 100.0
                 mult = float(self.config.get('add_pos_profit_multiplier', 1.5))
                 times2 = float(self.config.get('add_pos_times2', 1.1)) if step_count > 0 else 1.0
 
-                # We use latest_trade_price or entry_price for notional estimate
-                ref_price = self.engine.latest_trade_price if self.engine.latest_trade_price > 0 else entry_price
-                qty = abs(self.engine.position_qty[side])
-                if qty > 0:
-                    notional = qty * ref_price * contract_size
-                    target_upl = notional * fee_pct * mult * times2
+                notional = qty_abs * pos_entry * contract_size
+                target_upl = notional * fee_pct * mult * times2
 
-                    calc_tp = 0.0
-                    if side == 'long':
-                        calc_tp = round((target_upl / (qty * contract_size)) + entry_price, p_prec)
-                    else:
-                        calc_tp = round(entry_price - (target_upl / (qty * contract_size)), p_prec)
+                calc_tp = self.engine.position_manager.calculate_target_price(pos_side, target_upl)
+                if calc_tp:
+                    is_favorable = (pos_side == 'long' and calc_tp > reference_price) or (pos_side == 'short' and calc_tp < reference_price)
+                    if is_favorable:
+                        if tp_price == 0 or (pos_side == 'long' and calc_tp > tp_price) or (pos_side == 'short' and calc_tp < tp_price):
+                            tp_price = calc_tp
+                            self.engine.log(f"TP-CALC ({pos_side.upper()}): Profit Target trigger: {tp_price}", level="debug")
 
-                    # If this target is more favorable (higher for long, lower for short), use it
-                    if tp_price == 0 or (side == 'long' and calc_tp > tp_price) or (side == 'short' and calc_tp < tp_price):
-                        tp_price = calc_tp
-                        self.engine.log(f"TP-CALC ({side.upper()}): Profit Target price calculated: {tp_price}", level="debug")
-
-        # Fallback/Default Offset Logic if no specialized TP calculated yet
+        # 2. Fallback/Default Offset Logic (relative to reference_price)
         if tp_price == 0:
+            active_tp_offset = tp_offset
             if step_count > 0:
-                # Priority 1: Step 2 Offset (Relative to New Avg Entry)
+                # Priority 1: Step 2 Offset
                 step2_offset = safe_float(self.config.get('add_pos_step2_offset'), 0)
                 if step2_offset > 0:
-                    tp_offset = step2_offset
-                    self.engine.log(f"TP-CALC ({side.upper()}): Step 2 Offset detected ({step2_offset}). Overriding base offset.", level="debug")
+                    active_tp_offset = step2_offset
                 else:
-                    # Priority 2: TP Offset 2 (Additional Offset)
+                    # Priority 2: TP Offset 2
                     offset2 = safe_float(self.config.get('add_pos_tp_offset2'), 0)
                     if offset2 > 0:
-                        tp_offset += offset2
-                        self.engine.log(f"TP-CALC ({side.upper()}): Offset2 detected ({offset2}). Total TP Offset: {tp_offset}", level="debug")
+                        active_tp_offset += offset2
 
-            if side == 'long':
-                if tp_offset > 0: tp_price = round(entry_price + tp_offset, p_prec)
+            if pos_side == 'long':
+                if active_tp_offset > 0: tp_price = round(reference_price + active_tp_offset, p_prec)
             else:
-                if tp_offset > 0: tp_price = round(entry_price - tp_offset, p_prec)
+                if active_tp_offset > 0: tp_price = round(reference_price - active_tp_offset, p_prec)
 
-        # SL Calculation (Always uses offset for now)
-        if side == 'long':
-            if sl_offset > 0: sl_price = round(entry_price - sl_offset, p_prec)
+        # 3. Stop Loss Calculation (Always relative to reference_price)
+        if pos_side == 'long':
+            if sl_offset > 0: sl_price = round(reference_price - sl_offset, p_prec)
         else:
-            if sl_offset > 0: sl_price = round(entry_price + sl_offset, p_prec)
+            if sl_offset > 0: sl_price = round(reference_price + sl_offset, p_prec)
 
         return tp_price, sl_price
 
@@ -150,49 +158,74 @@ class OrderManager:
                 "sz": f"{qty:.{q_prec}f}" if q_prec > 0 else str(int(qty))
             }
 
+            # Map the actual position side we are acting on to ensure correct TP/SL direction
+            # In One-way mode, Buy -> Long, Sell -> Short
+            mapped_pos_side = self.engine.position_manager._map_side(posSide if posSide else side, qty=(qty if side.lower() == 'buy' else -qty))
+
             # Determine correct posSide based on account mode
-            # OKX V5:
-            # - long_short_mode (Hedge): posSide must be 'long' or 'short'.
-            # - net_mode (One-way): posSide should be 'net' or omitted.
             mode = self.config.get('okx_pos_mode', 'net_mode')
             if mode == 'long_short_mode':
                 if posSide in ['long', 'short']:
                     body["posSide"] = posSide
                 else:
-                    # Determine from trade side if not specified
-                    body["posSide"] = self.config.get('direction', 'long')
-                    if body["posSide"] == 'both':
-                        body["posSide"] = 'long' if side.lower() == 'buy' else 'short'
+                    body["posSide"] = mapped_pos_side
             else:
-                # Mode is net_mode (One-way). OKX strictly requires posSide: net or omitted.
-                # We force 'net' even if 'long'/'short' was passed by the signal logic.
                 body["posSide"] = "net"
 
             if order_type.lower() == "limit" and price is not None:
                 price = self._round_to_step(price, p_step)
                 body["px"] = f"{price:.{p_prec}f}"
 
-            if reduce_only: body["reduceOnly"] = True
-
             algo_list = []
             algo = {"posSide": body.get("posSide", "net")}
             has_algo = False
+
+            # Validation logic to prevent OKX 51052/51053 errors (TP/SL price validation)
+            # Short position (Sell entry): TP must be < price, SL must be > price
+            # Long position (Buy entry): TP must be > price, SL must be < price
+            ref_px = price if (order_type.lower() == "limit" and price) else self.engine.latest_trade_price
+
             if take_profit_price and safe_float(take_profit_price) > 0:
-                tp_px = self._get_tp_px(take_profit_price)
-                algo.update({"tpTriggerPx": str(take_profit_price), "tpOrdPx": tp_px, "tpTriggerPxType": "last"})
-                has_algo = True
+                # Validation logic to prevent OKX 51052/51053 errors (TP/SL price validation)
+                # Long position (buy entry/adding): TP must be > ref_px
+                # Short position (sell entry/adding): TP must be < ref_px
+                is_valid_tp = False
+                if mapped_pos_side == 'long':
+                    is_valid_tp = take_profit_price > (ref_px * 1.0001) # Add tiny buffer
+                else: # Short
+                    is_valid_tp = take_profit_price < (ref_px * 0.9999)
+
+                if is_valid_tp or reduce_only:
+                    tp_px = self._get_tp_px(take_profit_price, mapped_pos_side)
+                    algo.update({"tpTriggerPx": f"{take_profit_price:.{p_prec}f}", "tpOrdPx": tp_px, "tpTriggerPxType": "last"})
+                    has_algo = True
+                else:
+                    self.engine.log(f"TP Validation FAILED: {take_profit_price} not favorable for {mapped_pos_side} at {ref_px}.", level="debug")
+
             if stop_loss_price and safe_float(stop_loss_price) > 0:
-                sl_px = self._get_sl_px(stop_loss_price)
-                algo.update({"slTriggerPx": str(stop_loss_price), "slOrdPx": sl_px, "slTriggerPxType": "last"})
-                has_algo = True
+                is_valid_sl = False
+                if mapped_pos_side == 'long':
+                    is_valid_sl = stop_loss_price < (ref_px * 0.9999)
+                else: # Short
+                    is_valid_sl = stop_loss_price > (ref_px * 1.0001)
+
+                if is_valid_sl or reduce_only:
+                    sl_px = self._get_sl_px(stop_loss_price, mapped_pos_side)
+                    algo.update({"slTriggerPx": f"{stop_loss_price:.{p_prec}f}", "slOrdPx": sl_px, "slTriggerPxType": "last"})
+                    has_algo = True
+                else:
+                    self.engine.log(f"SL Validation FAILED: {stop_loss_price} not favorable for {mapped_pos_side} at {ref_px}.", level="debug")
+
             if has_algo:
                 algo_list.append(algo)
                 body["attachAlgoOrds"] = algo_list
 
+            if reduce_only: body["reduceOnly"] = True
+
             if verbose:
                 self.engine.log(f"Placing {order_type} {side} order for {qty} {symbol} (tdMode: {body['tdMode']}, posSide: {body['posSide']})")
                 if "attachAlgoOrds" in body:
-                    self.engine.log(f"Algo Orders: {body['attachAlgoOrds']}", level="debug")
+                    self.engine.log(f"Attached Algos: {body['attachAlgoOrds']}", level="debug")
             res = self.engine.okx_client.request("POST", path, body_dict=body)
             if res and res.get('code') == '0':
                 data = res.get('data', [{}])[0]
@@ -331,21 +364,21 @@ class OrderManager:
             if tp_price > 0 and sl_price > 0:
                 # Use OCO to link TP and SL
                 body["ordType"] = "oco"
-                tp_px = self._get_tp_px(tp_price)
-                sl_px = self._get_sl_px(sl_price)
+                tp_px = self._get_tp_px(tp_price, side)
+                sl_px = self._get_sl_px(sl_price, side)
 
                 body.update({
-                    "tpTriggerPx": str(tp_price), "tpOrdPx": tp_px, "tpTriggerPxType": "last",
-                    "slTriggerPx": str(sl_price), "slOrdPx": sl_px, "slTriggerPxType": "last"
+                    "tpTriggerPx": f"{tp_price:.{p_prec}f}", "tpOrdPx": tp_px, "tpTriggerPxType": "last",
+                    "slTriggerPx": f"{sl_price:.{p_prec}f}", "slOrdPx": sl_px, "slTriggerPxType": "last"
                 })
             elif tp_price > 0:
                 body["ordType"] = "conditional"
-                tp_px = self._get_tp_px(tp_price)
-                body.update({"tpTriggerPx": str(tp_price), "tpOrdPx": tp_px, "tpTriggerPxType": "last"})
+                tp_px = self._get_tp_px(tp_price, side)
+                body.update({"tpTriggerPx": f"{tp_price:.{p_prec}f}", "tpOrdPx": tp_px, "tpTriggerPxType": "last"})
             elif sl_price > 0:
                 body["ordType"] = "conditional"
-                sl_px = self._get_sl_px(sl_price)
-                body.update({"slTriggerPx": str(sl_price), "slOrdPx": sl_px, "slTriggerPxType": "last"})
+                sl_px = self._get_sl_px(sl_price, side)
+                body.update({"slTriggerPx": f"{sl_price:.{p_prec}f}", "slOrdPx": sl_px, "slTriggerPxType": "last"})
 
             res = self.engine.okx_client.request("POST", "/api/v5/trade/order-algo", body_dict=body)
             if res and res.get('code') != '0':
